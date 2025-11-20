@@ -1,0 +1,14 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://yourdomain.com/sitemap.xml
+
+# Crawl-delay (optional, helps reduce server load)
+Crawl-delay: 1
+
+# Disallow admin and internal pages
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
