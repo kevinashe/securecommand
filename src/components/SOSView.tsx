@@ -48,32 +48,82 @@ export const SOSView: React.FC = () => {
     }
   };
 
+  const capturePhoto = async (): Promise<string | null> => {
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        return null;
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      });
+
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.play();
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(video, 0, 0);
+
+      stream.getTracks().forEach(track => track.stop());
+
+      return canvas.toDataURL('image/jpeg', 0.8);
+    } catch (error) {
+      console.error('Error capturing photo:', error);
+      return null;
+    }
+  };
+
   const sendSOSAlert = async () => {
     setSending(true);
 
     try {
       let latitude = null;
       let longitude = null;
+      let photoData = null;
 
       if (navigator.geolocation) {
-        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject);
-        });
-        latitude = position.coords.latitude;
-        longitude = position.coords.longitude;
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
+            });
+          });
+          latitude = position.coords.latitude;
+          longitude = position.coords.longitude;
+        } catch (error) {
+          console.error('Error getting location:', error);
+        }
       }
+
+      photoData = await capturePhoto();
 
       const { error } = await supabase.from('sos_alerts').insert([
         {
           guard_id: profile!.id,
           latitude,
           longitude,
+          photo_url: photoData,
           message: 'Emergency assistance needed',
           status: 'active',
         },
       ]);
 
       if (!error) {
+        await supabase.from('notifications').insert([{
+          user_id: profile!.id,
+          title: 'SOS Alert Sent',
+          message: 'Emergency alert sent to dispatch. Help is on the way.',
+          type: 'sos',
+          priority: 'high'
+        }]);
         loadAlerts();
       }
     } catch (error) {
@@ -245,6 +295,19 @@ export const SOSView: React.FC = () => {
                       <p className="text-sm font-medium text-gray-900">
                         Site: {alert.sites.name}
                       </p>
+                    </div>
+                  )}
+
+                  {alert.photo_url && (
+                    <div className="mt-3">
+                      <p className="text-sm font-medium text-gray-900 mb-2">
+                        Photo captured during alert:
+                      </p>
+                      <img
+                        src={alert.photo_url}
+                        alt="SOS Alert Photo"
+                        className="rounded-lg border-2 border-gray-300 max-w-md w-full"
+                      />
                     </div>
                   )}
                 </div>
