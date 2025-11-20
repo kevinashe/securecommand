@@ -37,6 +37,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
         { id: 'notifications', icon: Bell, label: 'Notifications' },
         { id: 'billing', icon: CreditCard, label: 'Billing' },
         { id: 'payments', icon: Wallet, label: 'Payments' },
+        { id: 'system-settings', icon: Settings, label: 'System Settings' },
         { id: 'profile', icon: User, label: 'Profile Settings' },
       ];
     }
