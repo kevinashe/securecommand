@@ -105,9 +105,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
                   className="h-10 w-10 object-contain"
                 />
               ) : (
-                <div className="bg-blue-600 p-2 rounded-lg">
-                  <Shield className="h-6 w-6 text-white" />
-                </div>
+                <img
+                  src="/icon.svg"
+                  alt="SecureCommand Logo"
+                  className="h-10 w-10"
+                />
               )}
               <div>
                 <h1 className="text-lg font-bold text-gray-900">SecureCommand</h1>

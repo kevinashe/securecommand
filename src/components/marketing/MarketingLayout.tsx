@@ -26,9 +26,11 @@ export const MarketingLayout: React.FC<MarketingLayoutProps> = ({ children, curr
               onClick={() => onNavigate('home')}
               className="flex items-center space-x-3 group"
             >
-              <div className="bg-gradient-to-br from-blue-600 to-cyan-600 p-2 rounded-lg group-hover:shadow-lg transition-shadow">
-                <Shield className="h-6 w-6 text-white" />
-              </div>
+              <img
+                src="/icon.svg"
+                alt="SecureCommand Logo"
+                className="h-10 w-10 group-hover:scale-105 transition-transform"
+              />
               <span className="text-xl font-bold text-gray-900">SecureCommand</span>
             </button>
 
@@ -125,9 +127,11 @@ export const MarketingLayout: React.FC<MarketingLayoutProps> = ({ children, curr
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center space-x-3 mb-4">
-                <div className="bg-gradient-to-br from-blue-600 to-cyan-600 p-2 rounded-lg">
-                  <Shield className="h-6 w-6 text-white" />
-                </div>
+                <img
+                  src="/icon.svg"
+                  alt="SecureCommand Logo"
+                  className="h-10 w-10"
+                />
                 <span className="text-xl font-bold">SecureCommand</span>
               </div>
               <p className="text-slate-400 leading-relaxed">

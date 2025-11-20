@@ -68,9 +68,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToCompanySignup 
       <div className="max-w-md w-full">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="flex items-center justify-center mb-8">
-            <div className="bg-blue-600 p-4 rounded-full">
-              <Shield className="h-12 w-12 text-white" />
-            </div>
+            <img
+              src="/icon.svg"
+              alt="SecureCommand Logo"
+              className="h-20 w-20"
+            />
           </div>
 
           <h1 className="text-3xl font-bold text-center text-gray-900 mb-2">
