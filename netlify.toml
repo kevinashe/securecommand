@@ -9,6 +9,8 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  VITE_SUPABASE_URL = "https://hiedpvhkkhcwxihpgrig.supabase.co"
+  VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpZWRwdmhra2hjd3hpaHBncmlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MDkyODcsImV4cCI6MjA3ODk4NTI4N30.lKfPmq6xyxx40H0m1CEcWO4V3Gld14-P05BvXAN1VwI"
 
 [[headers]]
   for = "/*"
