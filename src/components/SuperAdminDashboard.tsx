@@ -25,7 +25,11 @@ interface SystemHealth {
   databaseQueryTime: number;
 }
 
-export const SuperAdminDashboard: React.FC = () => {
+interface SuperAdminDashboardProps {
+  onViewChange?: (view: string) => void;
+}
+
+export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onViewChange }) => {
   const [stats, setStats] = useState<SuperAdminStats>({
     totalCompanies: 0,
     activeCompanies: 0,
@@ -174,7 +178,20 @@ export const SuperAdminDashboard: React.FC = () => {
   };
 
   const handleQuickAction = (action: string) => {
-    console.log('Quick action:', action);
+    if (!onViewChange) return;
+
+    const actionMap: Record<string, string> = {
+      'create-company': 'companies',
+      'manage-users': 'guards',
+      'view-billing': 'billing',
+      'system-settings': 'system-settings',
+      'send-notification': 'notifications',
+    };
+
+    const view = actionMap[action];
+    if (view) {
+      onViewChange(view);
+    }
   };
 
   const formatBytes = (bytes: number) => {

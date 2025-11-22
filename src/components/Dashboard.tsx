@@ -24,7 +24,11 @@ interface SuperAdminStats {
   systemUptime: string;
 }
 
-export const Dashboard: React.FC = () => {
+interface DashboardProps {
+  onViewChange?: (view: string) => void;
+}
+
+export const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
   const { profile } = useAuth();
   const [stats, setStats] = useState<Stats>({
     totalGuards: 0,
@@ -212,7 +216,7 @@ export const Dashboard: React.FC = () => {
   }
 
   if (profile?.role === 'super_admin') {
-    return <SuperAdminDashboard />;
+    return <SuperAdminDashboard onViewChange={onViewChange} />;
   }
 
   return (
