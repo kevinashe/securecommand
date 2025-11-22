@@ -11,6 +11,8 @@ export const CompaniesView: React.FC = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [companyToDelete, setCompanyToDelete] = useState<Company | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -196,6 +198,34 @@ export const CompaniesView: React.FC = () => {
     }
   };
 
+  const handleDeleteCompany = async () => {
+    if (!companyToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('companies')
+        .delete()
+        .eq('id', companyToDelete.id);
+
+      if (!error) {
+        setShowDeleteModal(false);
+        setCompanyToDelete(null);
+        loadCompanies();
+        alert('Company deleted successfully');
+      } else {
+        alert('Error deleting company. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error deleting company:', error);
+      alert('Error deleting company. Please try again.');
+    }
+  };
+
+  const openDeleteModal = (company: Company) => {
+    setCompanyToDelete(company);
+    setShowDeleteModal(true);
+  };
+
   const copyToClipboard = (text: string, companyId: string) => {
     navigator.clipboard.writeText(text);
     setCopiedCode(companyId);
@@ -332,28 +362,35 @@ export const CompaniesView: React.FC = () => {
                 )}
               </div>
 
-              <div className="pt-4 mt-4 border-t border-gray-200 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <div className="pt-4 mt-4 border-t border-gray-200 flex flex-col gap-2">
                 <span className="text-xs text-gray-500 capitalize">
                   {company.subscription_tier} Plan
                 </span>
-                <div className="flex gap-2 sm:ml-auto">
+                <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => openEditModal(company)}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors font-medium"
+                    className="flex-1 min-w-[100px] flex items-center justify-center gap-2 px-3 py-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors font-medium text-sm"
                   >
                     <Edit2 className="h-4 w-4" />
                     <span>Edit</span>
                   </button>
                   <button
                     onClick={() => toggleCompanyStatus(company.id, company.is_active)}
-                    className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors font-medium ${
+                    className={`flex-1 min-w-[100px] flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors font-medium text-sm ${
                       company.is_active
-                        ? 'text-red-600 bg-red-50 hover:bg-red-100'
+                        ? 'text-orange-600 bg-orange-50 hover:bg-orange-100'
                         : 'text-green-600 bg-green-50 hover:bg-green-100'
                     }`}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <X className="h-4 w-4" />
                     <span>{company.is_active ? 'Deactivate' : 'Activate'}</span>
+                  </button>
+                  <button
+                    onClick={() => openDeleteModal(company)}
+                    className="flex-1 min-w-[100px] flex items-center justify-center gap-2 px-3 py-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors font-medium text-sm"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span>Delete</span>
                   </button>
                 </div>
               </div>
@@ -603,6 +640,56 @@ export const CompaniesView: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showDeleteModal && companyToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-center mb-4">
+              <div className="bg-red-100 p-3 rounded-full">
+                <Trash2 className="h-8 w-8 text-red-600" />
+              </div>
+            </div>
+
+            <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">
+              Delete Company
+            </h2>
+
+            <p className="text-gray-600 text-center mb-4">
+              Are you sure you want to permanently delete{' '}
+              <span className="font-semibold text-gray-900">{companyToDelete.name}</span>?
+            </p>
+
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <p className="text-sm text-red-800 font-medium mb-2">
+                Warning: This action cannot be undone!
+              </p>
+              <ul className="text-sm text-red-700 space-y-1 list-disc list-inside">
+                <li>All company data will be permanently deleted</li>
+                <li>All associated users will lose access</li>
+                <li>All sites, shifts, and incidents will be removed</li>
+              </ul>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setCompanyToDelete(null);
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteCompany}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+              >
+                Delete Company
+              </button>
+            </div>
           </div>
         </div>
       )}
