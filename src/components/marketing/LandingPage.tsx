@@ -59,22 +59,35 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
         return;
       }
 
-      if (data) {
+      if (data && data.length > 0) {
         const parsedContent: any = { hero: {}, features: {} };
 
-        data.forEach((item) => {
-          const value = typeof item.value === 'string' ? JSON.parse(item.value) : item.value;
+        data.forEach((item: any) => {
+          let value = item.value;
+
+          // The value is already parsed as JSONB from Supabase
+          // But we need to handle both string and non-string cases
+          if (typeof value === 'string') {
+            try {
+              value = JSON.parse(value);
+            } catch (e) {
+              // Keep as string if parse fails
+            }
+          }
 
           if (item.section === 'hero' || item.section === 'features') {
             parsedContent[item.section][item.key] = value;
           }
         });
 
-        setContent(prev => ({
-          ...prev,
-          hero: { ...prev.hero, ...parsedContent.hero },
-          features: { ...prev.features, ...parsedContent.features }
-        }));
+        // Only update if we have content
+        if (Object.keys(parsedContent.hero).length > 0 || Object.keys(parsedContent.features).length > 0) {
+          setContent(prev => ({
+            ...prev,
+            hero: { ...prev.hero, ...parsedContent.hero },
+            features: { ...prev.features, ...parsedContent.features }
+          }));
+        }
       }
     } catch (err) {
       console.error('Failed to load CMS content:', err);
