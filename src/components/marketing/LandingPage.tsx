@@ -66,17 +66,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
         const parsedContent: any = { hero: {}, features: {} };
 
         data.forEach((item: any) => {
-          let value = item.value;
-
-          // The value is already parsed as JSONB from Supabase
-          // But we need to handle both string and non-string cases
-          if (typeof value === 'string') {
-            try {
-              value = JSON.parse(value);
-            } catch (e) {
-              console.warn('Could not parse value for', item.section, item.key);
-            }
-          }
+          // JSONB values from Supabase are already native JS types
+          // No need to parse - they come as strings, arrays, or objects directly
+          const value = item.value;
 
           if (item.section === 'hero' || item.section === 'features') {
             parsedContent[item.section][item.key] = value;

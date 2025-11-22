@@ -36,8 +36,16 @@ export const WebsiteCMSSettings: React.FC = () => {
         if (!organizedContent[item.section]) {
           organizedContent[item.section] = {};
         }
-        const parsedValue = typeof item.value === 'string' ? JSON.parse(item.value) : item.value;
-        organizedContent[item.section][item.key] = typeof parsedValue === 'string' ? parsedValue : JSON.stringify(parsedValue, null, 2);
+        // JSONB values come back as native JS types, no parsing needed
+        const value = item.value;
+
+        // Convert to string for the text inputs
+        // If it's an array or object, stringify it for editing
+        if (typeof value === 'string') {
+          organizedContent[item.section][item.key] = value;
+        } else {
+          organizedContent[item.section][item.key] = JSON.stringify(value, null, 2);
+        }
       });
 
       setContent(organizedContent);
