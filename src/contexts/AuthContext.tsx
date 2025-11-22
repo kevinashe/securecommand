@@ -8,7 +8,7 @@ interface AuthContextType {
   companyLogo: string | null;
   loading: boolean;
   signIn: (email: string, password: string, companyCode?: string) => Promise<{ error: AuthError | null }>;
-  signUp: (email: string, password: string, fullName: string, role: string) => Promise<{ error: AuthError | null }>;
+  signUp: (email: string, password: string, fullName: string, role: string, companyCode: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -173,7 +173,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error: null };
   };
 
-  const signUp = async (email: string, password: string, fullName: string, role: string) => {
+  const signUp = async (email: string, password: string, fullName: string, role: string, companyCode: string) => {
+    if (!companyCode || companyCode.trim() === '') {
+      return { error: { message: 'Company code is required to sign up' } as AuthError };
+    }
+
+    const { data: company, error: companyError } = await supabase
+      .from('companies')
+      .select('id, name, is_active')
+      .eq('company_code', companyCode.toUpperCase())
+      .maybeSingle();
+
+    if (companyError || !company) {
+      return { error: { message: 'Invalid company code. Please verify with your company administrator.' } as AuthError };
+    }
+
+    if (!company.is_active) {
+      return { error: { message: 'This company account is inactive. Please contact support.' } as AuthError };
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -190,7 +208,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: data.user.id,
           full_name: fullName,
           role: role,
-          company_id: null,
+          company_id: company.id,
         });
 
       if (profileError) {

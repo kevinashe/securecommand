@@ -66,8 +66,6 @@ export const CompanySignup: React.FC<CompanySignupProps> = ({ onBack }) => {
         throw new Error('Failed to create user account');
       }
 
-      const companyCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-
       const { data: company, error: companyError } = await supabase
         .from('companies')
         .insert({
@@ -75,7 +73,6 @@ export const CompanySignup: React.FC<CompanySignupProps> = ({ onBack }) => {
           address: companyData.address,
           phone: companyData.phone,
           email: companyData.email,
-          company_code: companyCode,
           is_active: true,
         })
         .select()
@@ -104,11 +101,11 @@ export const CompanySignup: React.FC<CompanySignupProps> = ({ onBack }) => {
         throw new Error(`Failed to create admin profile: ${profileError.message}`);
       }
 
-      setSuccess('Company registered successfully! Redirecting to login...');
+      setSuccess(`Company registered successfully! Your company code is: ${company.company_code}. Please save this code and share it with your team members. Redirecting to login...`);
 
       setTimeout(() => {
         onBack();
-      }, 2000);
+      }, 5000);
     } catch (err: any) {
       setError(err.message || 'Failed to create company account');
     } finally {

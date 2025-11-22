@@ -4,7 +4,7 @@ import {
   Shield, LogOut, Menu, X, LayoutDashboard, MapPin, Users,
   Calendar, AlertTriangle, Package, MessageSquare, CreditCard,
   Building, Bell, Radio, Wallet, Settings, BarChart3, History,
-  FileText, User, DollarSign, UserPlus
+  FileText, User, DollarSign, UserPlus, Globe
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -37,6 +37,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
         { id: 'notifications', icon: Bell, label: 'Notifications' },
         { id: 'billing', icon: CreditCard, label: 'Billing' },
         { id: 'payments', icon: Wallet, label: 'Payments' },
+        { id: 'website-cms', icon: Globe, label: 'Website Content' },
         { id: 'system-settings', icon: Settings, label: 'System Settings' },
         { id: 'profile', icon: User, label: 'Profile Settings' },
       ];
@@ -71,6 +72,15 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
         { id: 'tracking', icon: Radio, label: 'GPS Tracking' },
         { id: 'equipment', icon: Package, label: 'Equipment' },
         { id: 'analytics', icon: BarChart3, label: 'Analytics' },
+        { id: 'notifications', icon: Bell, label: 'Notifications' },
+        { id: 'profile', icon: User, label: 'Profile Settings' },
+      ];
+    }
+
+    if (profile?.role === 'client') {
+      return [
+        { id: 'client-portal', icon: LayoutDashboard, label: 'Dashboard' },
+        { id: 'messages', icon: MessageSquare, label: 'Messages' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
         { id: 'profile', icon: User, label: 'Profile Settings' },
       ];

@@ -25,6 +25,8 @@ import { AssignmentHistoryView } from './components/AssignmentHistoryView';
 import { PricingPlansView } from './components/PricingPlansView';
 import { LeadsView } from './components/LeadsView';
 import { SystemSettings } from './components/SystemSettings';
+import { WebsiteCMSSettings } from './components/WebsiteCMSSettings';
+import { ClientPortalView } from './components/ClientPortalView';
 import { MarketingLayout } from './components/marketing/MarketingLayout';
 import { LandingPage } from './components/marketing/LandingPage';
 import { ProductsPage } from './components/marketing/ProductsPage';
@@ -101,6 +103,10 @@ const AppContent: React.FC = () => {
         return <LeadsView />;
       case 'system-settings':
         return <SystemSettings />;
+      case 'website-cms':
+        return <WebsiteCMSSettings />;
+      case 'client-portal':
+        return <ClientPortalView />;
       default:
         return <Dashboard />;
     }

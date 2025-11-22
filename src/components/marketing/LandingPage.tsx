@@ -1,11 +1,91 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Shield, ArrowRight, Check, Star } from 'lucide-react';
+import * as Icons from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 
 interface LandingPageProps {
   onNavigate: (page: string) => void;
 }
 
+interface CMSContent {
+  hero: {
+    badge_text: string;
+    main_heading: string;
+    sub_heading: string;
+    description: string;
+    primary_cta_text: string;
+    secondary_cta_text: string;
+  };
+  features: {
+    heading: string;
+    subheading: string;
+    feature_list: Array<{
+      icon: string;
+      title: string;
+      description: string;
+    }>;
+  };
+}
+
 export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
+  const [content, setContent] = useState<CMSContent>({
+    hero: {
+      badge_text: 'Trusted by Security Professionals Worldwide',
+      main_heading: 'Professional Solutions',
+      sub_heading: 'Built for Excellence',
+      description: 'Comprehensive software solutions designed to streamline operations, enhance productivity, and drive success across multiple industries.',
+      primary_cta_text: 'Explore Our Products',
+      secondary_cta_text: 'Schedule a Demo'
+    },
+    features: {
+      heading: 'Why Choose SecureCommand',
+      subheading: 'Powerful features designed for modern security operations',
+      feature_list: []
+    }
+  });
+
+  useEffect(() => {
+    loadContent();
+  }, []);
+
+  const loadContent = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('website_content')
+        .select('*');
+
+      if (error) {
+        console.error('Error loading website content:', error);
+        return;
+      }
+
+      if (data) {
+        const parsedContent: any = { hero: {}, features: {} };
+
+        data.forEach((item) => {
+          const value = typeof item.value === 'string' ? JSON.parse(item.value) : item.value;
+
+          if (item.section === 'hero' || item.section === 'features') {
+            parsedContent[item.section][item.key] = value;
+          }
+        });
+
+        setContent(prev => ({
+          ...prev,
+          hero: { ...prev.hero, ...parsedContent.hero },
+          features: { ...prev.features, ...parsedContent.features }
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to load CMS content:', err);
+    }
+  };
+
+  const getIcon = (iconName: string) => {
+    const IconComponent = (Icons as any)[iconName];
+    return IconComponent || Shield;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
       <div className="relative">
@@ -15,20 +95,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           <div className="text-center mb-16">
             <div className="inline-flex items-center space-x-2 bg-blue-500/10 border border-blue-500/20 rounded-full px-4 py-2 mb-6">
               <Star className="h-4 w-4 text-blue-400" />
-              <span className="text-blue-300 text-sm font-medium">Trusted by Security Professionals Worldwide</span>
+              <span className="text-blue-300 text-sm font-medium">{content.hero.badge_text}</span>
             </div>
 
             <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
-              Professional Solutions
+              {content.hero.main_heading}
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
-                Built for Excellence
+                {content.hero.sub_heading}
               </span>
             </h1>
 
             <p className="text-xl text-slate-300 mb-10 max-w-3xl mx-auto leading-relaxed">
-              Comprehensive software solutions designed to streamline operations, enhance productivity,
-              and drive success across multiple industries.
+              {content.hero.description}
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
@@ -36,7 +115,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                 onClick={() => onNavigate('products')}
                 className="w-full sm:w-auto flex items-center justify-center space-x-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-cyan-700 transition-all shadow-lg shadow-blue-500/30"
               >
-                <span>Explore Our Products</span>
+                <span>{content.hero.primary_cta_text}</span>
                 <ArrowRight className="h-5 w-5" />
               </button>
 
@@ -44,7 +123,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                 onClick={() => onNavigate('contact')}
                 className="w-full sm:w-auto px-8 py-4 bg-white/10 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/20 transition-all border border-white/20"
               >
-                Schedule a Demo
+                {content.hero.secondary_cta_text}
               </button>
             </div>
           </div>
@@ -67,53 +146,71 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       <div className="relative bg-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose Us?</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">{content.features.heading}</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Industry-leading features that set us apart from the competition
+              {content.features.subheading}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                title: 'Enterprise-Grade Security',
-                description: 'Bank-level encryption and security protocols to keep your data safe and compliant.',
-                icon: Shield
-              },
-              {
-                title: 'Scalable Architecture',
-                description: 'Grow from 10 to 10,000 users without missing a beat. Built to scale with you.',
-                icon: ArrowRight
-              },
-              {
-                title: 'Real-Time Updates',
-                description: 'Instant synchronization across all devices and users for seamless collaboration.',
-                icon: Check
-              },
-              {
-                title: 'Custom Integrations',
-                description: 'API access and webhooks to integrate with your existing tools and workflows.',
-                icon: Shield
-              },
-              {
-                title: 'Advanced Analytics',
-                description: 'Powerful insights and reporting to make data-driven decisions.',
-                icon: ArrowRight
-              },
-              {
-                title: 'Expert Support',
-                description: 'Dedicated support team available 24/7 to help you succeed.',
-                icon: Check
-              }
-            ].map((feature, index) => (
-              <div key={index} className="bg-slate-50 rounded-xl p-8 hover:shadow-lg transition-shadow">
-                <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                  <feature.icon className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">{feature.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{feature.description}</p>
-              </div>
-            ))}
+            {content.features.feature_list && content.features.feature_list.length > 0 ? (
+              content.features.feature_list.map((feature, index) => {
+                const IconComponent = getIcon(feature.icon);
+                return (
+                  <div key={index} className="bg-slate-50 rounded-xl p-8 hover:shadow-lg transition-shadow">
+                    <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                      <IconComponent className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3">{feature.title}</h3>
+                    <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                  </div>
+                );
+              })
+            ) : (
+              [
+                {
+                  title: 'Enterprise-Grade Security',
+                  description: 'Bank-level encryption and security protocols to keep your data safe and compliant.',
+                  icon: 'Shield'
+                },
+                {
+                  title: 'Scalable Architecture',
+                  description: 'Grow from 10 to 10,000 users without missing a beat. Built to scale with you.',
+                  icon: 'TrendingUp'
+                },
+                {
+                  title: 'Real-Time Updates',
+                  description: 'Instant synchronization across all devices and users for seamless collaboration.',
+                  icon: 'Zap'
+                },
+                {
+                  title: 'Custom Integrations',
+                  description: 'API access and webhooks to integrate with your existing tools and workflows.',
+                  icon: 'Code'
+                },
+                {
+                  title: 'Advanced Analytics',
+                  description: 'Powerful insights and reporting to make data-driven decisions.',
+                  icon: 'BarChart'
+                },
+                {
+                  title: 'Expert Support',
+                  description: 'Dedicated support team available 24/7 to help you succeed.',
+                  icon: 'Headphones'
+                }
+              ].map((feature, index) => {
+                const IconComponent = getIcon(feature.icon);
+                return (
+                  <div key={index} className="bg-slate-50 rounded-xl p-8 hover:shadow-lg transition-shadow">
+                    <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                      <IconComponent className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3">{feature.title}</h3>
+                    <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       </div>

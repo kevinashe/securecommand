@@ -41,7 +41,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToCompanySignup 
         }, 3000);
       }
     } else if (isSignUp) {
-      const { error } = await signUp(email, password, fullName, role);
+      if (!companyCode || companyCode.trim() === '') {
+        setError('Company code is required to sign up');
+        setLoading(false);
+        return;
+      }
+
+      const { error } = await signUp(email, password, fullName, role, companyCode);
       if (error) {
         setError(error.message);
       } else {
@@ -167,10 +173,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToCompanySignup 
               />
             </div>
 
-            {!isSignUp && !isForgotPassword && (
+            {!isForgotPassword && (
               <div>
                 <label htmlFor="companyCode" className="block text-sm font-medium text-gray-700 mb-2">
-                  Company Code <span className="text-gray-400 font-normal">(optional for admins)</span>
+                  Company Code {!isSignUp && <span className="text-gray-400 font-normal">(optional for admins)</span>}
+                  {isSignUp && <span className="text-red-500">*</span>}
                 </label>
                 <input
                   id="companyCode"
@@ -178,10 +185,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToCompanySignup 
                   value={companyCode}
                   onChange={(e) => setCompanyCode(e.target.value.toUpperCase())}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-mono"
-                  placeholder="ABC123"
-                  maxLength={6}
+                  placeholder="CC-XXXXXX"
+                  maxLength={9}
+                  required={isSignUp}
                 />
-                <p className="text-xs text-gray-500 mt-1">Enter the 6-character code provided by your company. Admins and managers can leave this blank.</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {isSignUp
+                    ? 'Enter the company code provided by your administrator. Contact your company admin if you don\'t have one.'
+                    : 'Enter the code provided by your company. Admins and managers can leave this blank.'
+                  }
+                </p>
               </div>
             )}
 
@@ -217,6 +230,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToCompanySignup 
                   <option value="security_officer">Security Officer</option>
                   <option value="site_manager">Site Manager</option>
                   <option value="company_admin">Company Admin</option>
+                  <option value="client">Client</option>
                 </select>
               </div>
             )}
