@@ -50,14 +50,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
 
   const loadContent = async () => {
     try {
+      console.log('Loading website content...');
       const { data, error } = await supabase
         .from('website_content')
         .select('*');
 
       if (error) {
-        console.error('Error loading website content:', error);
+        console.error('Supabase error loading website content:', error.message, error);
         return;
       }
+
+      console.log('Website content loaded:', data?.length, 'items');
 
       if (data && data.length > 0) {
         const parsedContent: any = { hero: {}, features: {} };
@@ -71,7 +74,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             try {
               value = JSON.parse(value);
             } catch (e) {
-              // Keep as string if parse fails
+              console.warn('Could not parse value for', item.section, item.key);
             }
           }
 
@@ -80,6 +83,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           }
         });
 
+        console.log('Parsed content:', parsedContent);
+
         // Only update if we have content
         if (Object.keys(parsedContent.hero).length > 0 || Object.keys(parsedContent.features).length > 0) {
           setContent(prev => ({
@@ -87,10 +92,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             hero: { ...prev.hero, ...parsedContent.hero },
             features: { ...prev.features, ...parsedContent.features }
           }));
+          console.log('Content state updated successfully');
+        } else {
+          console.warn('No hero or features content found');
         }
+      } else {
+        console.warn('No website content data returned from database');
       }
-    } catch (err) {
-      console.error('Failed to load CMS content:', err);
+    } catch (err: any) {
+      console.error('Exception loading CMS content:', err?.message || err);
     }
   };
 
