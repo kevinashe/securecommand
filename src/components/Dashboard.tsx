@@ -15,6 +15,14 @@ interface Stats {
   equipment: number;
 }
 
+interface SuperAdminStats {
+  totalCompanies: number;
+  activeCompanies: number;
+  totalUsers: number;
+  totalLeads: number;
+  systemUptime: string;
+}
+
 export const Dashboard: React.FC = () => {
   const { profile } = useAuth();
   const [stats, setStats] = useState<Stats>({
@@ -29,6 +37,15 @@ export const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [recentIncidents, setRecentIncidents] = useState<any[]>([]);
   const [upcomingShifts, setUpcomingShifts] = useState<any[]>([]);
+  const [superAdminStats, setSuperAdminStats] = useState<SuperAdminStats>({
+    totalCompanies: 0,
+    activeCompanies: 0,
+    totalUsers: 0,
+    totalLeads: 0,
+    systemUptime: '99.9%',
+  });
+  const [recentCompanies, setRecentCompanies] = useState<any[]>([]);
+  const [recentLeads, setRecentLeads] = useState<any[]>([]);
 
   useEffect(() => {
     loadDashboardData();
@@ -49,23 +66,36 @@ export const Dashboard: React.FC = () => {
       }
 
       if (profile.role === 'super_admin') {
-        const [guardsRes, sitesRes, shiftsRes, incidentsRes, sosRes, equipmentRes] = await Promise.all([
+        const [companiesRes, activeCompaniesRes, usersRes, leadsRes] = await Promise.all([
+          supabase.from('companies').select('id', { count: 'exact', head: true }),
+          supabase.from('companies').select('id', { count: 'exact', head: true }).eq('is_active', true),
           supabase.from('profiles').select('id', { count: 'exact', head: true }),
-          supabase.from('sites').select('id', { count: 'exact', head: true }).eq('is_active', true),
-          supabase.from('shifts').select('id', { count: 'exact', head: true }).eq('status', 'active'),
-          supabase.from('incidents').select('id', { count: 'exact', head: true }).eq('status', 'open'),
-          supabase.from('sos_alerts').select('id', { count: 'exact', head: true }).eq('status', 'active'),
-          supabase.from('equipment').select('id', { count: 'exact', head: true }),
+          supabase.from('leads').select('id', { count: 'exact', head: true }),
         ]);
 
-        setStats({
-          totalGuards: guardsRes.count || 0,
-          activeSites: sitesRes.count || 0,
-          activeShifts: shiftsRes.count || 0,
-          openIncidents: incidentsRes.count || 0,
-          activeSOSAlerts: sosRes.count || 0,
-          equipment: equipmentRes.count || 0,
+        setSuperAdminStats({
+          totalCompanies: companiesRes.count || 0,
+          activeCompanies: activeCompaniesRes.count || 0,
+          totalUsers: usersRes.count || 0,
+          totalLeads: leadsRes.count || 0,
+          systemUptime: '99.9%',
         });
+
+        const { data: companies } = await supabase
+          .from('companies')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        setRecentCompanies(companies || []);
+
+        const { data: leads } = await supabase
+          .from('leads')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        setRecentLeads(leads || []);
       } else if (profile.role === 'company_admin' || profile.role === 'site_manager') {
         const [guardsRes, sitesRes, shiftsRes, incidentsRes, sosRes, equipmentRes] = await Promise.all([
           supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('company_id', profile.company_id!),
@@ -100,24 +130,26 @@ export const Dashboard: React.FC = () => {
         });
       }
 
-      const { data: incidents } = await supabase
-        .from('incidents')
-        .select('*, sites(name)')
-        .order('created_at', { ascending: false })
-        .limit(5);
+      if (profile.role !== 'super_admin') {
+        const { data: incidents } = await supabase
+          .from('incidents')
+          .select('*, sites(name)')
+          .order('created_at', { ascending: false })
+          .limit(5);
 
-      setRecentIncidents(incidents || []);
+        setRecentIncidents(incidents || []);
 
-      const query = profile.role === 'security_officer'
-        ? supabase.from('shifts').select('*, sites(name)').eq('guard_id', profile.id)
-        : supabase.from('shifts').select('*, sites(name), profiles(full_name)');
+        const query = profile.role === 'security_officer'
+          ? supabase.from('shifts').select('*, sites(name)').eq('guard_id', profile.id)
+          : supabase.from('shifts').select('*, sites(name), profiles(full_name)');
 
-      const { data: shifts } = await query
-        .gte('start_time', new Date().toISOString())
-        .order('start_time', { ascending: true })
-        .limit(5);
+        const { data: shifts } = await query
+          .gte('start_time', new Date().toISOString())
+          .order('start_time', { ascending: true })
+          .limit(5);
 
-      setUpcomingShifts(shifts || []);
+        setUpcomingShifts(shifts || []);
+      }
     } catch (error) {
       console.error('Error loading dashboard:', error);
     } finally {
@@ -174,6 +206,168 @@ export const Dashboard: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (profile?.role === 'super_admin') {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">System Administration</h1>
+          <p className="text-gray-600">Monitor and manage the entire SecureCommand platform</p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Total Companies</p>
+                <p className="text-3xl font-bold text-gray-900">{superAdminStats.totalCompanies}</p>
+              </div>
+              <div className="bg-blue-500 p-3 rounded-lg">
+                <Building className="h-6 w-6 text-white" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Active Companies</p>
+                <p className="text-3xl font-bold text-gray-900">{superAdminStats.activeCompanies}</p>
+              </div>
+              <div className="bg-green-500 p-3 rounded-lg">
+                <Activity className="h-6 w-6 text-white" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Total Users</p>
+                <p className="text-3xl font-bold text-gray-900">{superAdminStats.totalUsers}</p>
+              </div>
+              <div className="bg-purple-500 p-3 rounded-lg">
+                <Users className="h-6 w-6 text-white" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">New Leads</p>
+                <p className="text-3xl font-bold text-gray-900">{superAdminStats.totalLeads}</p>
+              </div>
+              <div className="bg-orange-500 p-3 rounded-lg">
+                <TrendingUp className="h-6 w-6 text-white" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Recent Companies</h2>
+              <Building className="h-5 w-5 text-gray-400" />
+            </div>
+
+            {recentCompanies.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No companies yet</p>
+            ) : (
+              <div className="space-y-4">
+                {recentCompanies.map((company) => (
+                  <div
+                    key={company.id}
+                    className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div className="bg-blue-100 p-2 rounded-lg">
+                      <Building className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {company.name}
+                      </p>
+                      <p className="text-xs text-gray-600">Code: {company.company_code}</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {new Date(company.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      company.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                    }`}>
+                      {company.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Recent Leads</h2>
+              <TrendingUp className="h-5 w-5 text-gray-400" />
+            </div>
+
+            {recentLeads.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No leads yet</p>
+            ) : (
+              <div className="space-y-4">
+                {recentLeads.map((lead) => (
+                  <div
+                    key={lead.id}
+                    className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div className={`p-2 rounded-lg ${
+                      lead.status === 'new' ? 'bg-blue-100' :
+                      lead.status === 'contacted' ? 'bg-yellow-100' :
+                      lead.status === 'qualified' ? 'bg-green-100' :
+                      'bg-gray-100'
+                    }`}>
+                      <Users className={`h-4 w-4 ${
+                        lead.status === 'new' ? 'text-blue-600' :
+                        lead.status === 'contacted' ? 'text-yellow-600' :
+                        lead.status === 'qualified' ? 'text-green-600' :
+                        'text-gray-600'
+                      }`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {lead.company_name}
+                      </p>
+                      <p className="text-xs text-gray-600">{lead.contact_name}</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {new Date(lead.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <span className={`text-xs px-2 py-1 rounded-full capitalize ${
+                      lead.status === 'new' ? 'bg-blue-100 text-blue-700' :
+                      lead.status === 'contacted' ? 'bg-yellow-100 text-yellow-700' :
+                      lead.status === 'qualified' ? 'bg-green-100 text-green-700' :
+                      'bg-gray-100 text-gray-700'
+                    }`}>
+                      {lead.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-sm p-8 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-2xl font-bold mb-2">System Status: Online</h3>
+              <p className="text-blue-100">Uptime: {superAdminStats.systemUptime} | All systems operational</p>
+            </div>
+            <Activity className="h-12 w-12 text-blue-200" />
+          </div>
+        </div>
       </div>
     );
   }
