@@ -45,13 +45,16 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
 
     if (profile?.role === 'company_admin') {
       return [
-        ...baseItems,
-        { id: 'sites', icon: MapPin, label: 'Sites' },
+        { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
         { id: 'guards', icon: Users, label: 'Guards' },
+        { id: 'sites', icon: MapPin, label: 'Sites' },
+        { id: 'shifts', icon: Calendar, label: 'Shifts' },
         { id: 'patrol', icon: MapPin, label: 'Patrol Routes' },
         { id: 'equipment', icon: Package, label: 'Equipment' },
-        { id: 'sos-alerts', icon: Bell, label: 'SOS Alerts' },
         { id: 'tracking', icon: Radio, label: 'GPS Tracking' },
+        { id: 'incidents', icon: AlertTriangle, label: 'Incidents' },
+        { id: 'sos-alerts', icon: Bell, label: 'SOS Alerts' },
+        { id: 'messages', icon: MessageSquare, label: 'Messages' },
         { id: 'analytics', icon: BarChart3, label: 'Analytics' },
         { id: 'audit-logs', icon: FileText, label: 'Audit Logs' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
