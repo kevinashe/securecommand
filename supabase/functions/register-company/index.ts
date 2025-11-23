@@ -65,41 +65,36 @@ Deno.serve(async (req: Request) => {
       throw new Error('Failed to create user account');
     }
 
-    const { data: company, error: companyError } = await supabaseAdmin
-      .from('companies')
-      .insert({
-        name: companyData.companyName,
-        address: companyData.address,
-        phone: companyData.phone,
-        email: companyData.email,
-        is_active: true,
-      })
-      .select()
-      .single();
+    const { data: companyResult, error: companyError } = await supabaseAdmin.rpc('create_company_bypass_rls', {
+      p_name: companyData.companyName,
+      p_address: companyData.address,
+      p_phone: companyData.phone,
+      p_email: companyData.email,
+    });
 
     if (companyError) {
       await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
       throw new Error(`Failed to create company: ${companyError.message}`);
     }
 
-    if (!company) {
+    if (!companyResult || !companyResult.id) {
       await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
       throw new Error('Company was created but data was not returned');
     }
 
-    const { error: profileError } = await supabaseAdmin
-      .from('profiles')
-      .insert({
-        id: authData.user.id,
-        full_name: adminData.fullName,
-        role: 'company_admin',
-        company_id: company.id,
-      });
+    const { error: profileError } = await supabaseAdmin.rpc('create_profile_bypass_rls', {
+      p_id: authData.user.id,
+      p_full_name: adminData.fullName,
+      p_role: 'company_admin',
+      p_company_id: companyResult.id,
+    });
 
     if (profileError) {
       await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
       throw new Error(`Failed to create admin profile: ${profileError.message}`);
     }
+
+    const company = companyResult;
 
     return new Response(
       JSON.stringify({
