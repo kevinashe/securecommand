@@ -97,17 +97,21 @@ export const LiveChat: React.FC = () => {
         .from('chat_messages')
         .select(`
           *,
-          profiles:sender_id(full_name, role)
+          sender:profiles!chat_messages_sender_id_fkey(full_name, role)
         `)
         .eq('company_id', profile?.company_id)
-        .or(`sender_id.eq.${profile?.id},recipient_id.eq.${profile?.id},recipient_id.is.null`)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading messages:', error);
+        throw error;
+      }
+
+      console.log('Loaded messages:', data);
 
       const formattedData = data?.map((item: any) => ({
         ...item,
-        sender: item.profiles
+        sender: item.sender
       })) || [];
 
       setMessages(formattedData);
@@ -166,11 +170,21 @@ export const LiveChat: React.FC = () => {
       return messages.filter(m => m.recipient_id === null);
     }
 
-    return messages.filter(
+    const filtered = messages.filter(
       m =>
         (m.sender_id === profile?.id && m.recipient_id === selectedUser) ||
         (m.sender_id === selectedUser && m.recipient_id === profile?.id)
     );
+
+    console.log('Filtering messages:', {
+      totalMessages: messages.length,
+      selectedUser,
+      currentUserId: profile?.id,
+      filteredCount: filtered.length,
+      filtered
+    });
+
+    return filtered;
   };
 
   const getUnreadCount = (userId: string) => {
