@@ -164,6 +164,9 @@ export const PricingPlansView: React.FC = () => {
       stripe_yearly_price_id: plan.stripe_yearly_price_id || ''
     });
     setShowForm(true);
+    setTimeout(() => {
+      document.getElementById('edit-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
 
   const handleDelete = async (planId: string) => {
@@ -283,8 +286,138 @@ export const PricingPlansView: React.FC = () => {
         </div>
       )}
 
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {plans.map((plan) => (
+          <div
+            key={plan.id}
+            className={`bg-white rounded-xl shadow-sm border-2 transition-all ${
+              plan.is_featured ? 'border-blue-500 shadow-lg' : 'border-gray-200'
+            }`}
+          >
+            {plan.is_featured && (
+              <div className="bg-blue-600 text-white text-center py-2 rounded-t-xl">
+                <div className="flex items-center justify-center space-x-2">
+                  <Star className="h-4 w-4" />
+                  <span className="text-sm font-semibold">Most Popular</span>
+                </div>
+              </div>
+            )}
+
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-2xl font-bold text-gray-900">{plan.name}</h3>
+                {!plan.is_active && (
+                  <span className="px-2 py-1 bg-gray-200 text-gray-600 text-xs font-semibold rounded">
+                    Inactive
+                  </span>
+                )}
+              </div>
+
+              <p className="text-gray-600 mb-6 text-sm">{plan.description}</p>
+
+              <div className="mb-6 bg-blue-50 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 mb-2">License Fee</h4>
+                <div className="flex items-baseline space-x-2 mb-2">
+                  <span className="text-3xl font-bold text-gray-900">
+                    ${plan.monthly_license_fee}
+                  </span>
+                  <span className="text-gray-600">/month</span>
+                </div>
+                <p className="text-sm text-gray-600">
+                  or ${plan.yearly_license_fee}/year
+                </p>
+              </div>
+
+              <div className="mb-6 bg-green-50 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 mb-2">Per Guard Fee</h4>
+                <div className="flex items-baseline space-x-2 mb-2">
+                  <span className="text-3xl font-bold text-gray-900">
+                    ${plan.per_guard_monthly_fee}
+                  </span>
+                  <span className="text-gray-600">/guard/month</span>
+                </div>
+                <p className="text-sm text-gray-600">
+                  or ${plan.per_guard_yearly_fee}/guard/year
+                </p>
+              </div>
+
+              <div className="mb-6 border-t border-gray-200 pt-4">
+                <p className="text-sm font-semibold text-gray-900 mb-2">Example: With 10 guards</p>
+                <div className="space-y-1 text-sm text-gray-700">
+                  <p>Monthly: ${calculateMonthlyTotal(plan.monthly_license_fee, plan.per_guard_monthly_fee, 10).toFixed(2)}</p>
+                  <p>Yearly: ${calculateYearlyTotal(plan.yearly_license_fee, plan.per_guard_yearly_fee, 10).toFixed(2)}</p>
+                </div>
+              </div>
+
+              <div className="space-y-3 mb-6">
+                <div className="flex items-center space-x-2 text-sm text-gray-700">
+                  <Users className="h-4 w-4 text-blue-600" />
+                  <span>{plan.max_users === -1 ? 'Unlimited' : `Up to ${plan.max_users}`} users</span>
+                </div>
+                <div className="flex items-center space-x-2 text-sm text-gray-700">
+                  <MapPin className="h-4 w-4 text-blue-600" />
+                  <span>{plan.max_sites === -1 ? 'Unlimited' : `Up to ${plan.max_sites}`} sites</span>
+                </div>
+                <div className="flex items-center space-x-2 text-sm text-gray-700">
+                  <Shield className="h-4 w-4 text-blue-600" />
+                  <span>{plan.max_guards === -1 ? 'Unlimited' : `Up to ${plan.max_guards}`} guards</span>
+                </div>
+              </div>
+
+              <div className="border-t border-gray-200 pt-4 mb-6">
+                <h4 className="font-semibold text-gray-900 mb-3">Features:</h4>
+                <ul className="space-y-2">
+                  {plan.features.slice(0, 5).map((feature, index) => (
+                    <li key={index} className="flex items-start space-x-2 text-sm text-gray-600">
+                      <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                  {plan.features.length > 5 && (
+                    <li className="text-sm text-gray-500 italic">
+                      +{plan.features.length - 5} more features
+                    </li>
+                  )}
+                </ul>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => handleEdit(plan)}
+                  className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Edit className="h-4 w-4" />
+                  <span>Edit</span>
+                </button>
+                <button
+                  onClick={() => handleDelete(plan.id)}
+                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                >
+                  <Trash2 className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {plans.length === 0 && !showForm && (
+        <div className="bg-white rounded-xl shadow-sm p-12 text-center border border-gray-200">
+          <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">No Pricing Plans</h3>
+          <p className="text-gray-600 mb-4">Get started by creating your first pricing plan</p>
+          <button
+            onClick={() => setShowForm(true)}
+            className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="h-5 w-5" />
+            <span>Add Plan</span>
+          </button>
+        </div>
+      )}
+
       {showForm && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div id="edit-form" className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-gray-900">
               {editingPlan ? 'Edit Pricing Plan' : 'Create New Pricing Plan'}
@@ -571,136 +704,6 @@ export const PricingPlansView: React.FC = () => {
               </button>
             </div>
           </form>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {plans.map((plan) => (
-          <div
-            key={plan.id}
-            className={`bg-white rounded-xl shadow-sm border-2 transition-all ${
-              plan.is_featured ? 'border-blue-500 shadow-lg' : 'border-gray-200'
-            }`}
-          >
-            {plan.is_featured && (
-              <div className="bg-blue-600 text-white text-center py-2 rounded-t-xl">
-                <div className="flex items-center justify-center space-x-2">
-                  <Star className="h-4 w-4" />
-                  <span className="text-sm font-semibold">Most Popular</span>
-                </div>
-              </div>
-            )}
-
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-2xl font-bold text-gray-900">{plan.name}</h3>
-                {!plan.is_active && (
-                  <span className="px-2 py-1 bg-gray-200 text-gray-600 text-xs font-semibold rounded">
-                    Inactive
-                  </span>
-                )}
-              </div>
-
-              <p className="text-gray-600 mb-6 text-sm">{plan.description}</p>
-
-              <div className="mb-6 bg-blue-50 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 mb-2">License Fee</h4>
-                <div className="flex items-baseline space-x-2 mb-2">
-                  <span className="text-3xl font-bold text-gray-900">
-                    ${plan.monthly_license_fee}
-                  </span>
-                  <span className="text-gray-600">/month</span>
-                </div>
-                <p className="text-sm text-gray-600">
-                  or ${plan.yearly_license_fee}/year
-                </p>
-              </div>
-
-              <div className="mb-6 bg-green-50 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 mb-2">Per Guard Fee</h4>
-                <div className="flex items-baseline space-x-2 mb-2">
-                  <span className="text-3xl font-bold text-gray-900">
-                    ${plan.per_guard_monthly_fee}
-                  </span>
-                  <span className="text-gray-600">/guard/month</span>
-                </div>
-                <p className="text-sm text-gray-600">
-                  or ${plan.per_guard_yearly_fee}/guard/year
-                </p>
-              </div>
-
-              <div className="mb-6 border-t border-gray-200 pt-4">
-                <p className="text-sm font-semibold text-gray-900 mb-2">Example: With 10 guards</p>
-                <div className="space-y-1 text-sm text-gray-700">
-                  <p>Monthly: ${calculateMonthlyTotal(plan.monthly_license_fee, plan.per_guard_monthly_fee, 10).toFixed(2)}</p>
-                  <p>Yearly: ${calculateYearlyTotal(plan.yearly_license_fee, plan.per_guard_yearly_fee, 10).toFixed(2)}</p>
-                </div>
-              </div>
-
-              <div className="space-y-3 mb-6">
-                <div className="flex items-center space-x-2 text-sm text-gray-700">
-                  <Users className="h-4 w-4 text-blue-600" />
-                  <span>{plan.max_users === -1 ? 'Unlimited' : `Up to ${plan.max_users}`} users</span>
-                </div>
-                <div className="flex items-center space-x-2 text-sm text-gray-700">
-                  <MapPin className="h-4 w-4 text-blue-600" />
-                  <span>{plan.max_sites === -1 ? 'Unlimited' : `Up to ${plan.max_sites}`} sites</span>
-                </div>
-                <div className="flex items-center space-x-2 text-sm text-gray-700">
-                  <Shield className="h-4 w-4 text-blue-600" />
-                  <span>{plan.max_guards === -1 ? 'Unlimited' : `Up to ${plan.max_guards}`} guards</span>
-                </div>
-              </div>
-
-              <div className="border-t border-gray-200 pt-4 mb-6">
-                <h4 className="font-semibold text-gray-900 mb-3">Features:</h4>
-                <ul className="space-y-2">
-                  {plan.features.slice(0, 5).map((feature, index) => (
-                    <li key={index} className="flex items-start space-x-2 text-sm text-gray-600">
-                      <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                  {plan.features.length > 5 && (
-                    <li className="text-sm text-gray-500 italic">
-                      +{plan.features.length - 5} more features
-                    </li>
-                  )}
-                </ul>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => handleEdit(plan)}
-                  className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <Edit className="h-4 w-4" />
-                  <span>Edit</span>
-                </button>
-                <button
-                  onClick={() => handleDelete(plan.id)}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                >
-                  <Trash2 className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {plans.length === 0 && !showForm && (
-        <div className="bg-white rounded-xl shadow-sm p-12 text-center border border-gray-200">
-          <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No Pricing Plans</h3>
-          <p className="text-gray-600 mb-4">Get started by creating your first pricing plan</p>
-          <button
-            onClick={() => setShowForm(true)}
-            className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="h-5 w-5" />
-            <span>Add Plan</span>
-          </button>
         </div>
       )}
     </div>
