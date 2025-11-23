@@ -50,63 +50,31 @@ export const CompanySignup: React.FC<CompanySignupProps> = ({ onBack }) => {
     setLoading(true);
 
     try {
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email: adminData.email,
-        password: adminData.password,
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/register-company`;
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({
+          companyData,
+          adminData: {
+            fullName: adminData.fullName,
+            email: adminData.email,
+            password: adminData.password,
+          },
+        }),
       });
 
-      if (signUpError) {
-        if (signUpError.message.includes('User already registered')) {
-          throw new Error('This email is already registered. Please use the login page or try a different email address.');
-        }
-        throw new Error(signUpError.message);
+      const result = await response.json();
+
+      if (!response.ok || result.error) {
+        throw new Error(result.error || 'Failed to create company account');
       }
 
-      if (!authData.user || !authData.session) {
-        throw new Error('Failed to create user account. Please try again.');
-      }
-
-      const { data: company, error: companyError } = await supabase
-        .from('companies')
-        .insert({
-          name: companyData.companyName,
-          address: companyData.address,
-          phone: companyData.phone,
-          email: companyData.email,
-          is_active: true,
-        })
-        .select()
-        .single();
-
-      if (companyError) {
-        console.error('Company creation error:', companyError);
-        await supabase.auth.signOut();
-        throw new Error(`Failed to create company: ${companyError.message}`);
-      }
-
-      if (!company) {
-        await supabase.auth.signOut();
-        throw new Error('Company was created but data was not returned');
-      }
-
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: authData.user.id,
-          full_name: adminData.fullName,
-          role: 'company_admin',
-          company_id: company.id,
-        });
-
-      if (profileError) {
-        console.error('Profile creation error:', profileError);
-        await supabase.auth.signOut();
-        throw new Error(`Failed to create admin profile: ${profileError.message}`);
-      }
-
-      await supabase.auth.signOut();
-
-      setSuccess(`Company registered successfully! Your company code is: ${company.company_code}. Please save this code and share it with your team members. Redirecting to login...`);
+      setSuccess(`Company registered successfully! Your company code is: ${result.companyCode}. Please save this code and share it with your team members. Redirecting to login...`);
 
       setTimeout(() => {
         onBack();
