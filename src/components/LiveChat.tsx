@@ -96,12 +96,9 @@ export const LiveChat: React.FC = () => {
       console.log('Loading messages for company:', profile?.company_id);
       console.log('Current user ID:', profile?.id);
 
-      const { data, error } = await supabase
+      const { data: messagesData, error } = await supabase
         .from('chat_messages')
-        .select(`
-          *,
-          sender:profiles!chat_messages_sender_id_fkey(full_name, role)
-        `)
+        .select('*')
         .eq('company_id', profile?.company_id)
         .order('created_at', { ascending: true });
 
@@ -111,13 +108,26 @@ export const LiveChat: React.FC = () => {
         throw error;
       }
 
-      console.log('Loaded messages count:', data?.length);
-      console.log('Loaded messages:', data);
+      console.log('Loaded messages count:', messagesData?.length);
+      console.log('Loaded messages:', messagesData);
 
-      const formattedData = data?.map((item: any) => ({
+      if (!messagesData || messagesData.length === 0) {
+        setMessages([]);
+        return;
+      }
+
+      const senderIds = [...new Set(messagesData.map(m => m.sender_id))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, role')
+        .in('id', senderIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+      const formattedData = messagesData.map((item: any) => ({
         ...item,
-        sender: item.sender
-      })) || [];
+        sender: profileMap.get(item.sender_id)
+      }));
 
       console.log('Setting messages state with:', formattedData.length, 'messages');
       setMessages(formattedData);
