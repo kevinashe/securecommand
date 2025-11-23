@@ -93,6 +93,9 @@ export const LiveChat: React.FC = () => {
 
   const loadMessages = async () => {
     try {
+      console.log('Loading messages for company:', profile?.company_id);
+      console.log('Current user ID:', profile?.id);
+
       const { data, error } = await supabase
         .from('chat_messages')
         .select(`
@@ -103,10 +106,12 @@ export const LiveChat: React.FC = () => {
         .order('created_at', { ascending: true });
 
       if (error) {
-        console.error('Error loading messages:', error);
+        console.error('Supabase error loading messages:', error);
+        alert(`Error loading messages: ${error.message}`);
         throw error;
       }
 
+      console.log('Loaded messages count:', data?.length);
       console.log('Loaded messages:', data);
 
       const formattedData = data?.map((item: any) => ({
@@ -114,9 +119,10 @@ export const LiveChat: React.FC = () => {
         sender: item.sender
       })) || [];
 
+      console.log('Setting messages state with:', formattedData.length, 'messages');
       setMessages(formattedData);
     } catch (error) {
-      console.error('Error loading messages:', error);
+      console.error('Catch block - Error loading messages:', error);
     }
   };
 
