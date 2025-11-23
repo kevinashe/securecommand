@@ -100,7 +100,7 @@ export const LiveChat: React.FC = () => {
           profiles:sender_id(full_name, role)
         `)
         .eq('company_id', profile?.company_id)
-        .or(`sender_id.eq.${profile?.id},recipient_id.eq.${profile?.id}`)
+        .or(`sender_id.eq.${profile?.id},recipient_id.eq.${profile?.id},recipient_id.is.null`)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
