@@ -56,14 +56,14 @@ export const CompanySignup: React.FC<CompanySignupProps> = ({ onBack }) => {
       });
 
       if (signUpError) {
-        if (signUpError.message.includes('already registered') || signUpError.message.includes('already exists')) {
+        if (signUpError.message.includes('User already registered')) {
           throw new Error('This email is already registered. Please use the login page or try a different email address.');
         }
-        throw signUpError;
+        throw new Error(signUpError.message);
       }
 
-      if (!authData.user) {
-        throw new Error('Failed to create user account');
+      if (!authData.user || !authData.session) {
+        throw new Error('Failed to create user account. Please try again.');
       }
 
       const { data: company, error: companyError } = await supabase
@@ -80,10 +80,12 @@ export const CompanySignup: React.FC<CompanySignupProps> = ({ onBack }) => {
 
       if (companyError) {
         console.error('Company creation error:', companyError);
+        await supabase.auth.signOut();
         throw new Error(`Failed to create company: ${companyError.message}`);
       }
 
       if (!company) {
+        await supabase.auth.signOut();
         throw new Error('Company was created but data was not returned');
       }
 
@@ -98,8 +100,11 @@ export const CompanySignup: React.FC<CompanySignupProps> = ({ onBack }) => {
 
       if (profileError) {
         console.error('Profile creation error:', profileError);
+        await supabase.auth.signOut();
         throw new Error(`Failed to create admin profile: ${profileError.message}`);
       }
+
+      await supabase.auth.signOut();
 
       setSuccess(`Company registered successfully! Your company code is: ${company.company_code}. Please save this code and share it with your team members. Redirecting to login...`);
 
