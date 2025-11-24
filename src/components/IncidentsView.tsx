@@ -20,11 +20,6 @@ export const IncidentsView: React.FC = () => {
   });
 
   const [capturedPhotos, setCapturedPhotos] = useState<string[]>([]);
-  const [showCamera, setShowCamera] = useState(false);
-  const [cameraError, setCameraError] = useState<string>('');
-  const videoRef = React.useRef<HTMLVideoElement>(null);
-  const canvasRef = React.useRef<HTMLCanvasElement>(null);
-  const streamRef = React.useRef<MediaStream | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -100,56 +95,6 @@ export const IncidentsView: React.FC = () => {
     }
   };
 
-  const startCamera = async () => {
-    setCameraError('');
-
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      setCameraError('Camera not supported in this browser');
-      alert('Camera not supported. Please use the Upload Photo option instead.');
-      return;
-    }
-
-    try {
-      const constraints = {
-        video: {
-          facingMode: { ideal: 'environment' },
-          width: { ideal: 1280, max: 1920 },
-          height: { ideal: 720, max: 1080 }
-        },
-        audio: false
-      };
-
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-
-      if (!stream) {
-        throw new Error('No stream received from camera');
-      }
-
-      streamRef.current = stream;
-      setShowCamera(true);
-
-      requestAnimationFrame(() => {
-        if (videoRef.current && streamRef.current) {
-          console.log('Setting video source to stream');
-          videoRef.current.srcObject = streamRef.current;
-          videoRef.current.play().catch(e => {
-            console.error('Video play failed:', e);
-            setCameraError('Failed to start video playback');
-          });
-        }
-      });
-    } catch (error: any) {
-      console.error('Camera error:', error);
-      const errorMessage = error.name === 'NotAllowedError'
-        ? 'Camera permission denied'
-        : error.name === 'NotFoundError'
-        ? 'No camera found on this device'
-        : error.message || 'Could not access camera';
-
-      setCameraError(errorMessage);
-      alert(`${errorMessage}. Please use the Upload Photo option instead.`);
-    }
-  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -170,29 +115,6 @@ export const IncidentsView: React.FC = () => {
     }
   };
 
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-    setShowCamera(false);
-  };
-
-  const capturePhoto = () => {
-    if (videoRef.current && canvasRef.current) {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.drawImage(video, 0, 0);
-        const photoData = canvas.toDataURL('image/jpeg', 0.8);
-        setCapturedPhotos(prev => [...prev, photoData]);
-        stopCamera();
-      }
-    }
-  };
 
   const removePhoto = (index: number) => {
     setCapturedPhotos(prev => prev.filter((_, i) => i !== index));
@@ -550,81 +472,25 @@ export const IncidentsView: React.FC = () => {
                   Photos
                 </label>
 
-                {cameraError && (
-                  <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
-                    {cameraError}
-                  </div>
-                )}
-
-                {!showCamera && (
-                  <div className="space-y-2">
-                    <button
-                      type="button"
-                      onClick={startCamera}
-                      className="w-full flex items-center justify-center space-x-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors"
-                    >
-                      <Camera className="h-5 w-5 text-gray-600" />
-                      <span className="text-gray-600">Use Camera</span>
-                    </button>
-
-                    <div className="relative">
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        capture="environment"
-                        multiple
-                        onChange={handleFileSelect}
-                        className="hidden"
-                        id="photo-upload"
-                      />
-                      <label
-                        htmlFor="photo-upload"
-                        className="w-full flex items-center justify-center space-x-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer"
-                      >
-                        <Camera className="h-5 w-5 text-gray-600" />
-                        <span className="text-gray-600">Upload Photo</span>
-                      </label>
-                    </div>
-                  </div>
-                )}
-
-                {showCamera && (
-                  <div className="space-y-3">
-                    <div className="relative bg-gray-900 rounded-lg overflow-hidden" style={{ minHeight: '256px' }}>
-                      <video
-                        ref={videoRef}
-                        autoPlay
-                        playsInline
-                        muted
-                        className="w-full h-64 object-cover"
-                        style={{ backgroundColor: '#111827' }}
-                      />
-                      {!videoRef.current?.srcObject && (
-                        <div className="absolute inset-0 flex items-center justify-center text-white text-sm">
-                          Loading camera...
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex space-x-2">
-                      <button
-                        type="button"
-                        onClick={capturePhoto}
-                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
-                      >
-                        <Camera className="h-4 w-4" />
-                        <span>Capture</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={stopCamera}
-                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                )}
+                <div className="relative">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    multiple
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    id="photo-upload"
+                  />
+                  <label
+                    htmlFor="photo-upload"
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer"
+                  >
+                    <Camera className="h-5 w-5 text-gray-600" />
+                    <span className="text-gray-600">Add Photo</span>
+                  </label>
+                </div>
 
                 {capturedPhotos.length > 0 && (
                   <div className="mt-3 grid grid-cols-2 gap-2">
@@ -647,8 +513,6 @@ export const IncidentsView: React.FC = () => {
                   </div>
                 )}
               </div>
-
-              <canvas ref={canvasRef} className="hidden" />
 
               <div className="flex space-x-3 pt-4">
                 <button
