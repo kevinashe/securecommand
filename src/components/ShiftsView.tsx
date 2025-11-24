@@ -11,6 +11,7 @@ export const ShiftsView: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showShiftDetailModal, setShowShiftDetailModal] = useState(false);
   const [selectedShift, setSelectedShift] = useState<any | null>(null);
   const [sites, setSites] = useState<any[]>([]);
   const [guards, setGuards] = useState<any[]>([]);
@@ -422,7 +423,8 @@ export const ShiftsView: React.FC = () => {
                         }`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedDate(day);
+                          setSelectedShift(shift);
+                          setShowShiftDetailModal(true);
                         }}
                       >
                         <div className="font-medium truncate">{shift.sites?.name}</div>
@@ -463,7 +465,7 @@ export const ShiftsView: React.FC = () => {
                       {dayShifts.slice(0, 3).map(shift => (
                         <div
                           key={shift.id}
-                          className={`text-xs p-1 rounded truncate ${
+                          className={`text-xs p-1 rounded truncate cursor-pointer hover:opacity-80 ${
                             shift.status === 'scheduled'
                               ? 'bg-blue-100 text-blue-700'
                               : shift.status === 'active'
@@ -472,6 +474,11 @@ export const ShiftsView: React.FC = () => {
                               ? 'bg-gray-100 text-gray-700'
                               : 'bg-red-100 text-red-700'
                           }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedShift(shift);
+                            setShowShiftDetailModal(true);
+                          }}
                         >
                           {shift.sites?.name}
                         </div>
@@ -832,6 +839,112 @@ export const ShiftsView: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showShiftDetailModal && selectedShift && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Shift Details</h2>
+              <button
+                onClick={() => {
+                  setShowShiftDetailModal(false);
+                  setSelectedShift(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-500">Site</label>
+                <p className="text-gray-900 font-medium">{selectedShift.sites?.name}</p>
+                <p className="text-sm text-gray-600">{selectedShift.sites?.address}</p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-500">Guard</label>
+                <p className="text-gray-900 font-medium">{selectedShift.profiles?.full_name}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Start Time</label>
+                  <p className="text-gray-900">
+                    {new Date(selectedShift.start_time).toLocaleString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">End Time</label>
+                  <p className="text-gray-900">
+                    {new Date(selectedShift.end_time).toLocaleString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-500">Status</label>
+                <span
+                  className={`inline-block mt-1 text-xs px-3 py-1 rounded-full font-medium capitalize ${
+                    selectedShift.status === 'scheduled'
+                      ? 'bg-blue-100 text-blue-700'
+                      : selectedShift.status === 'active'
+                      ? 'bg-green-100 text-green-700'
+                      : selectedShift.status === 'completed'
+                      ? 'bg-gray-100 text-gray-700'
+                      : 'bg-red-100 text-red-700'
+                  }`}
+                >
+                  {selectedShift.status}
+                </span>
+              </div>
+
+              {selectedShift.notes && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Notes</label>
+                  <p className="text-gray-900">{selectedShift.notes}</p>
+                </div>
+              )}
+
+              {canManageShifts && (
+                <div className="flex space-x-3 pt-4 border-t">
+                  <button
+                    onClick={() => {
+                      setShowShiftDetailModal(false);
+                      openEditModal(selectedShift);
+                    }}
+                    className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Edit className="h-4 w-4" />
+                    <span>Edit</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowShiftDetailModal(false);
+                      handleDeleteShift(selectedShift.id);
+                    }}
+                    className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span>Delete</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
