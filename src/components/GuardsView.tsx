@@ -53,7 +53,7 @@ export const GuardsView: React.FC = () => {
   useEffect(() => {
     loadGuards();
     loadSites();
-  }, [profile]);
+  }, [profile?.id]);
 
   const loadGuards = async () => {
     try {
