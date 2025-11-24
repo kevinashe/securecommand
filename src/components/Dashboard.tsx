@@ -54,7 +54,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
 
   useEffect(() => {
     loadDashboardData();
-  }, [profile]);
+  }, [profile?.id]);
 
   const loadDashboardData = async () => {
     if (!profile) return;
