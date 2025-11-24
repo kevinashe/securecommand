@@ -17,7 +17,6 @@ import { CheckInView } from './components/CheckInView';
 import { TrackingView } from './components/TrackingView';
 import { PaymentsView } from './components/PaymentsView';
 import { CompanySettings } from './components/CompanySettings';
-import { ProfileSettings } from './components/ProfileSettings';
 import { NotificationsView } from './components/NotificationsView';
 import { AnalyticsView } from './components/AnalyticsView';
 import { AssignmentHistoryView } from './components/AssignmentHistoryView';
@@ -86,8 +85,6 @@ const AppContent: React.FC = () => {
         return <TrackingView />;
       case 'settings':
         return <CompanySettings />;
-      case 'profile':
-        return <ProfileSettings />;
       case 'notifications':
         return <NotificationsView />;
       case 'analytics':

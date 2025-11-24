@@ -38,7 +38,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
         { id: 'payments', icon: Wallet, label: 'Payments' },
         { id: 'website-cms', icon: Globe, label: 'Website Content' },
         { id: 'system-settings', icon: Settings, label: 'System Settings' },
-        { id: 'profile', icon: User, label: 'Profile Settings' },
       ];
     }
 
@@ -57,7 +56,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
         { id: 'analytics', icon: BarChart3, label: 'Analytics' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
         { id: 'settings', icon: Settings, label: 'Settings' },
-        { id: 'profile', icon: User, label: 'Profile Settings' },
       ];
     }
 
@@ -74,7 +72,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
         { id: 'equipment', icon: Package, label: 'Equipment' },
         { id: 'analytics', icon: BarChart3, label: 'Analytics' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
-        { id: 'profile', icon: User, label: 'Profile Settings' },
       ];
     }
 
@@ -83,7 +80,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
         { id: 'client-portal', icon: LayoutDashboard, label: 'Dashboard' },
         { id: 'messages', icon: MessageSquare, label: 'Messages' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
-        { id: 'profile', icon: User, label: 'Profile Settings' },
       ];
     }
 
@@ -94,7 +90,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
       { id: 'sos', icon: Bell, label: 'SOS' },
       { id: 'history', icon: History, label: 'My History' },
       { id: 'notifications', icon: Bell, label: 'Notifications' },
-      { id: 'profile', icon: User, label: 'Profile Settings' },
     ];
   };
 

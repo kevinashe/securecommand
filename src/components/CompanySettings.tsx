@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Company } from '../lib/supabase';
-import { Building, Upload, Save, CreditCard, Plus, X, Wallet, Crown, Check } from 'lucide-react';
+import { Building, Upload, Save, CreditCard, Plus, X, Wallet, Crown, Check, User, Lock, Phone, Mail } from 'lucide-react';
 
 interface PaymentGateway {
   id: string;
@@ -61,6 +61,18 @@ export const CompanySettings: React.FC = () => {
     logo_url: '',
   });
 
+  const [profileData, setProfileData] = useState({
+    full_name: '',
+    phone: '',
+    email: ''
+  });
+
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+
   const [newMethod, setNewMethod] = useState({
     gateway_id: '',
     type: 'card',
@@ -75,7 +87,22 @@ export const CompanySettings: React.FC = () => {
 
   useEffect(() => {
     loadData();
-  }, [profile?.company_id]);
+    if (profile) {
+      setProfileData({
+        full_name: profile.full_name || '',
+        phone: profile.phone || '',
+        email: ''
+      });
+      loadEmail();
+    }
+  }, [profile?.company_id, profile]);
+
+  const loadEmail = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      setProfileData(prev => ({ ...prev, email: user.email || '' }));
+    }
+  };
 
   const loadData = async () => {
     await Promise.all([loadCompany(), loadGateways(), loadPaymentMethods(), loadPricingPlans()]);
@@ -319,6 +346,84 @@ export const CompanySettings: React.FC = () => {
     }
   };
 
+  const handleProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          full_name: profileData.full_name,
+          phone: profileData.phone,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', profile?.id);
+
+      if (updateError) throw updateError;
+
+      await supabase.from('audit_logs').insert([{
+        user_id: profile?.id,
+        action: 'update',
+        entity_type: 'profile',
+        entity_id: profile?.id,
+        changes: { full_name: profileData.full_name, phone: profileData.phone }
+      }]);
+
+      setMessage({ type: 'success', text: 'Profile updated successfully!' });
+      setTimeout(() => setMessage(null), 3000);
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message || 'Failed to update profile' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setMessage({ type: 'error', text: 'New passwords do not match' });
+      setLoading(false);
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      setMessage({ type: 'error', text: 'Password must be at least 6 characters' });
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: passwordData.newPassword
+      });
+
+      if (updateError) throw updateError;
+
+      await supabase.from('audit_logs').insert([{
+        user_id: profile?.id,
+        action: 'update',
+        entity_type: 'profile',
+        entity_id: profile?.id,
+        changes: { password_changed: true }
+      }]);
+
+      setMessage({ type: 'success', text: 'Password changed successfully!' });
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+      setTimeout(() => setMessage(null), 3000);
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message || 'Failed to change password' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const changePlan = async () => {
     if (!selectedPlan || !company) return;
 
@@ -373,7 +478,7 @@ export const CompanySettings: React.FC = () => {
   if (!company) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900">Company Settings</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
         <p className="text-gray-600">No company found.</p>
       </div>
     );
@@ -382,8 +487,8 @@ export const CompanySettings: React.FC = () => {
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Company Settings</h1>
-        <p className="text-gray-600 mt-1">Manage your company profile and branding</p>
+        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+        <p className="text-gray-600 mt-1">Manage your company, account, and security settings</p>
       </div>
 
       {message && (
@@ -621,6 +726,127 @@ export const CompanySettings: React.FC = () => {
           </button>
         </div>
       </form>
+
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+        <div className="flex items-center space-x-3 mb-6">
+          <div className="bg-blue-100 p-3 rounded-lg">
+            <User className="h-6 w-6 text-blue-600" />
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">Personal Information</h2>
+            <p className="text-sm text-gray-600">Update your profile details</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleProfileUpdate} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="flex items-center space-x-2">
+                <User className="h-4 w-4" />
+                <span>Full Name</span>
+              </div>
+            </label>
+            <input
+              type="text"
+              value={profileData.full_name}
+              onChange={(e) => setProfileData({ ...profileData, full_name: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="flex items-center space-x-2">
+                <Mail className="h-4 w-4" />
+                <span>Email Address</span>
+              </div>
+            </label>
+            <input
+              type="email"
+              value={profileData.email}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+              disabled
+            />
+            <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="flex items-center space-x-2">
+                <Phone className="h-4 w-4" />
+                <span>Phone Number</span>
+              </div>
+            </label>
+            <input
+              type="tel"
+              value={profileData.phone}
+              onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium disabled:opacity-50"
+            >
+              <Save className="h-5 w-5" />
+              <span>{loading ? 'Saving...' : 'Save Profile'}</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+        <div className="flex items-center space-x-3 mb-6">
+          <div className="bg-red-100 p-3 rounded-lg">
+            <Lock className="h-6 w-6 text-red-600" />
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">Change Password</h2>
+            <p className="text-sm text-gray-600">Update your account password</p>
+          </div>
+        </div>
+
+        <form onSubmit={handlePasswordChange} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+            <input
+              type="password"
+              value={passwordData.newPassword}
+              onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              required
+              minLength={6}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+            <input
+              type="password"
+              value={passwordData.confirmPassword}
+              onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              required
+              minLength={6}
+            />
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex items-center gap-2 px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium disabled:opacity-50"
+            >
+              <Lock className="h-5 w-5" />
+              <span>{loading ? 'Changing...' : 'Change Password'}</span>
+            </button>
+          </div>
+        </form>
+      </div>
 
       {showChangePlanModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
