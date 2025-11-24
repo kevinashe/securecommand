@@ -103,7 +103,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
         setRecentLeads(leads || []);
       } else if (profile.role === 'company_admin' || profile.role === 'site_manager') {
         const [guardsRes, sitesRes, shiftsRes, incidentsRes, sosRes, equipmentRes] = await Promise.all([
-          supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('company_id', profile.company_id!),
+          supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('company_id', profile.company_id!).eq('role', 'security_officer'),
           supabase.from('sites').select('id', { count: 'exact', head: true }).eq('company_id', profile.company_id!).eq('is_active', true),
           supabase.from('shifts').select('id', { count: 'exact', head: true }).eq('status', 'active'),
           supabase.from('incidents').select('id', { count: 'exact', head: true }).eq('status', 'open'),
