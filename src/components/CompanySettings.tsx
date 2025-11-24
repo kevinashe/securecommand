@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Company } from '../lib/supabase';
-import { Building, Upload, Save, CreditCard, Plus, X, Wallet } from 'lucide-react';
+import { Building, Upload, Save, CreditCard, Plus, X, Wallet, Crown, Check } from 'lucide-react';
 
 interface PaymentGateway {
   id: string;
@@ -22,6 +22,22 @@ interface PaymentMethod {
   gateway_display_name?: string;
 }
 
+interface PricingPlan {
+  id: string;
+  name: string;
+  description: string;
+  monthly_license_fee: number;
+  yearly_license_fee: number;
+  per_guard_monthly_fee: number;
+  per_guard_yearly_fee: number;
+  currency: string;
+  features: string[];
+  max_users: number;
+  max_sites: number;
+  max_guards: number;
+  is_featured: boolean;
+}
+
 export const CompanySettings: React.FC = () => {
   const { profile, refreshProfile } = useAuth();
   const [company, setCompany] = useState<Company | null>(null);
@@ -33,6 +49,9 @@ export const CompanySettings: React.FC = () => {
   const [gateways, setGateways] = useState<PaymentGateway[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [showAddMethodModal, setShowAddMethodModal] = useState(false);
+  const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>([]);
+  const [showChangePlanModal, setShowChangePlanModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<string>('');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -59,7 +78,7 @@ export const CompanySettings: React.FC = () => {
   }, [profile?.company_id]);
 
   const loadData = async () => {
-    await Promise.all([loadCompany(), loadGateways(), loadPaymentMethods()]);
+    await Promise.all([loadCompany(), loadGateways(), loadPaymentMethods(), loadPricingPlans()]);
     setLoading(false);
   };
 
@@ -122,6 +141,20 @@ export const CompanySettings: React.FC = () => {
       setPaymentMethods(formatted || []);
     } catch (error) {
       console.error('Error loading payment methods:', error);
+    }
+  };
+
+  const loadPricingPlans = async () => {
+    try {
+      const { data } = await supabase
+        .from('pricing_plans')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order');
+
+      setPricingPlans(data || []);
+    } catch (error) {
+      console.error('Error loading pricing plans:', error);
     }
   };
 
@@ -283,6 +316,38 @@ export const CompanySettings: React.FC = () => {
     } catch (error) {
       console.error('Error setting default payment method:', error);
       setMessage({ type: 'error', text: 'Failed to set default payment method' });
+    }
+  };
+
+  const changePlan = async () => {
+    if (!selectedPlan || !company) return;
+
+    const plan = pricingPlans.find(p => p.id === selectedPlan);
+    if (!plan) return;
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('companies')
+        .update({
+          subscription_tier: plan.name.toLowerCase(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', company.id);
+
+      if (error) {
+        setMessage({ type: 'error', text: 'Failed to change plan' });
+      } else {
+        setMessage({ type: 'success', text: `Successfully changed to ${plan.name} plan!` });
+        setShowChangePlanModal(false);
+        await loadCompany();
+        await refreshProfile();
+      }
+    } catch (error) {
+      console.error('Error changing plan:', error);
+      setMessage({ type: 'error', text: 'Failed to change plan' });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -456,7 +521,15 @@ export const CompanySettings: React.FC = () => {
 
             <div className="p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-600 mb-1">Subscription Plan</p>
-              <p className="text-lg font-semibold text-gray-900 capitalize">{company.subscription_tier}</p>
+              <div className="flex items-center justify-between">
+                <p className="text-lg font-semibold text-gray-900 capitalize">{company.subscription_tier}</p>
+                <button
+                  onClick={() => setShowChangePlanModal(true)}
+                  className="text-sm px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                >
+                  Change Plan
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -547,6 +620,117 @@ export const CompanySettings: React.FC = () => {
           </div>
         )}
       </div>
+
+      {showChangePlanModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl max-w-5xl w-full p-8 my-8 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Change Subscription Plan</h2>
+                <p className="text-gray-600 mt-1">Select a new plan for your company</p>
+              </div>
+              <button
+                onClick={() => setShowChangePlanModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              {pricingPlans.map((plan) => {
+                const isCurrentPlan = plan.name.toLowerCase() === company?.subscription_tier?.toLowerCase();
+                return (
+                  <div
+                    key={plan.id}
+                    className={`relative border-2 rounded-xl p-6 transition-all ${
+                      selectedPlan === plan.id
+                        ? 'border-blue-600 shadow-lg'
+                        : isCurrentPlan
+                        ? 'border-green-500 bg-green-50'
+                        : 'border-gray-200 hover:border-blue-300'
+                    }`}
+                  >
+                    {plan.is_featured && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                        <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                          <Crown className="h-3 w-3" />
+                          POPULAR
+                        </span>
+                      </div>
+                    )}
+
+                    {isCurrentPlan && (
+                      <div className="absolute -top-3 right-4">
+                        <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                          <Check className="h-3 w-3" />
+                          CURRENT
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="text-center mb-4">
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
+                      <p className="text-gray-600 text-sm mb-4">{plan.description}</p>
+                      <div className="mb-2">
+                        <span className="text-4xl font-bold text-gray-900">
+                          ${plan.monthly_license_fee}
+                        </span>
+                        <span className="text-gray-600">/month</span>
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        + ${plan.per_guard_monthly_fee}/guard/month
+                      </p>
+                    </div>
+
+                    <ul className="space-y-3 mb-6">
+                      {plan.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-sm">
+                          <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
+                          <span className="text-gray-700">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <button
+                      onClick={() => setSelectedPlan(plan.id)}
+                      disabled={isCurrentPlan}
+                      className={`w-full py-3 rounded-lg font-semibold transition-colors ${
+                        isCurrentPlan
+                          ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                          : selectedPlan === plan.id
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                      }`}
+                    >
+                      {isCurrentPlan ? 'Current Plan' : selectedPlan === plan.id ? 'Selected' : 'Select Plan'}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex gap-4 pt-4 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  setShowChangePlanModal(false);
+                  setSelectedPlan('');
+                }}
+                className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={changePlan}
+                disabled={!selectedPlan || saving}
+                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? 'Changing Plan...' : 'Confirm Change'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showAddMethodModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
