@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Calendar, Plus, Clock, MapPin, User, X, ChevronLeft, ChevronRight, List } from 'lucide-react';
+import { Calendar, Plus, Clock, MapPin, User, X, ChevronLeft, ChevronRight, List, Edit, Trash2 } from 'lucide-react';
 
 type ViewMode = 'week' | 'month' | 'list';
 
@@ -10,6 +10,8 @@ export const ShiftsView: React.FC = () => {
   const [shifts, setShifts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedShift, setSelectedShift] = useState<any | null>(null);
   const [sites, setSites] = useState<any[]>([]);
   const [guards, setGuards] = useState<any[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('week');
@@ -134,6 +136,67 @@ export const ShiftsView: React.FC = () => {
     } catch (error) {
       console.error('Error creating shift:', error);
     }
+  };
+
+  const handleEditShift = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const { error } = await supabase
+        .from('shifts')
+        .update({
+          site_id: formData.site_id,
+          guard_id: formData.guard_id,
+          start_time: formData.start_time,
+          end_time: formData.end_time,
+          notes: formData.notes,
+        })
+        .eq('id', selectedShift?.id);
+
+      if (!error) {
+        setShowEditModal(false);
+        setSelectedShift(null);
+        setFormData({
+          site_id: '',
+          guard_id: '',
+          start_time: '',
+          end_time: '',
+          notes: '',
+        });
+        loadShifts();
+      }
+    } catch (error) {
+      console.error('Error updating shift:', error);
+    }
+  };
+
+  const handleDeleteShift = async (shiftId: string) => {
+    if (!confirm('Are you sure you want to delete this shift?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('shifts')
+        .delete()
+        .eq('id', shiftId);
+
+      if (!error) {
+        loadShifts();
+      }
+    } catch (error) {
+      console.error('Error deleting shift:', error);
+    }
+  };
+
+  const openEditModal = (shift: any) => {
+    setSelectedShift(shift);
+    setFormData({
+      site_id: shift.site_id,
+      guard_id: shift.guard_id,
+      start_time: new Date(shift.start_time).toISOString().slice(0, 16),
+      end_time: new Date(shift.end_time).toISOString().slice(0, 16),
+      notes: shift.notes || '',
+    });
+    setShowEditModal(true);
   };
 
   const updateShiftStatus = async (shiftId: string, newStatus: string) => {
@@ -502,6 +565,25 @@ export const ShiftsView: React.FC = () => {
                         {shift.status}
                       </span>
 
+                      {canManageShifts && (
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => openEditModal(shift)}
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Edit shift"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteShift(shift.id)}
+                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete shift"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      )}
+
                       {canManageShifts && shift.status === 'scheduled' && (
                         <button
                           onClick={() => updateShiftStatus(shift.id, 'active')}
@@ -631,6 +713,122 @@ export const ShiftsView: React.FC = () => {
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Create
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Edit Shift</h2>
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setSelectedShift(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditShift} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Site
+                </label>
+                <select
+                  value={formData.site_id}
+                  onChange={(e) => setFormData({ ...formData, site_id: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Select Site</option>
+                  {sites.map((site) => (
+                    <option key={site.id} value={site.id}>
+                      {site.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Guard
+                </label>
+                <select
+                  value={formData.guard_id}
+                  onChange={(e) => setFormData({ ...formData, guard_id: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Select Guard</option>
+                  {guards.map((guard) => (
+                    <option key={guard.id} value={guard.id}>
+                      {guard.full_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Start Time
+                </label>
+                <input
+                  type="datetime-local"
+                  value={formData.start_time}
+                  onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  End Time
+                </label>
+                <input
+                  type="datetime-local"
+                  value={formData.end_time}
+                  onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Notes (Optional)
+                </label>
+                <textarea
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setSelectedShift(null);
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Save Changes
                 </button>
               </div>
             </form>

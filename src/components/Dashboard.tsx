@@ -106,9 +106,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
         const [guardsRes, sitesRes, shiftsRes, incidentsRes, sosRes, equipmentRes] = await Promise.all([
           supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('company_id', profile.company_id!).eq('role', 'security_officer'),
           supabase.from('sites').select('id', { count: 'exact', head: true }).eq('company_id', profile.company_id!).eq('is_active', true),
-          supabase.from('shifts').select('id, sites!inner(company_id)', { count: 'exact', head: true }).eq('sites.company_id', profile.company_id!).lte('start_time', now).gte('end_time', now),
-          supabase.from('incidents').select('id', { count: 'exact', head: true }).eq('status', 'open'),
-          supabase.from('sos_alerts').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+          supabase.from('shifts').select('id, sites!inner(company_id)', { count: 'exact', head: true }).eq('sites.company_id', profile.company_id!).lte('start_time', now).gt('end_time', now),
+          supabase.from('incidents').select('id, sites!inner(company_id)', { count: 'exact', head: true }).eq('sites.company_id', profile.company_id!).eq('status', 'open'),
+          supabase.from('sos_alerts').select('id, sites!inner(company_id)', { count: 'exact', head: true }).eq('sites.company_id', profile.company_id!).eq('status', 'active'),
           supabase.from('equipment').select('id', { count: 'exact', head: true }).eq('company_id', profile.company_id!),
         ]);
 
