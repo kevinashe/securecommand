@@ -40,7 +40,7 @@ export const ShiftsView: React.FC = () => {
         .from('shifts')
         .select('*, sites!inner(name, address, company_id), profiles(full_name)')
         .gte('start_time', startDate.toISOString())
-        .lte('start_time', endDate.toISOString())
+        .lte('end_time', endDate.toISOString())
         .order('start_time', { ascending: true });
 
       if (profile.role === 'security_officer') {
@@ -51,7 +51,9 @@ export const ShiftsView: React.FC = () => {
 
       const { data, error } = await query;
 
-      if (!error && data) {
+      if (error) {
+        console.error('Error loading shifts:', error);
+      } else if (data) {
         setShifts(data);
       }
     } catch (error) {
