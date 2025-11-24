@@ -102,37 +102,52 @@ export const IncidentsView: React.FC = () => {
 
   const startCamera = async () => {
     setCameraError('');
-    setShowCamera(true);
 
-    await new Promise(resolve => setTimeout(resolve, 100));
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setCameraError('Camera not supported in this browser');
+      alert('Camera not supported. Please use the Upload Photo option instead.');
+      return;
+    }
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
+      const constraints = {
         video: {
-          facingMode: 'environment',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 720, max: 1080 }
         },
         audio: false
-      });
+      };
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        streamRef.current = stream;
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
 
-        videoRef.current.addEventListener('loadedmetadata', () => {
-          if (videoRef.current) {
-            videoRef.current.play().catch(err => {
-              console.error('Error playing video:', err);
-              setCameraError('Failed to play video stream');
-            });
-          }
-        });
+      if (!stream) {
+        throw new Error('No stream received from camera');
       }
+
+      streamRef.current = stream;
+      setShowCamera(true);
+
+      requestAnimationFrame(() => {
+        if (videoRef.current && streamRef.current) {
+          console.log('Setting video source to stream');
+          videoRef.current.srcObject = streamRef.current;
+          videoRef.current.play().catch(e => {
+            console.error('Video play failed:', e);
+            setCameraError('Failed to start video playback');
+          });
+        }
+      });
     } catch (error: any) {
-      console.error('Error accessing camera:', error);
-      setCameraError(error.message || 'Could not access camera');
-      setShowCamera(false);
+      console.error('Camera error:', error);
+      const errorMessage = error.name === 'NotAllowedError'
+        ? 'Camera permission denied'
+        : error.name === 'NotFoundError'
+        ? 'No camera found on this device'
+        : error.message || 'Could not access camera';
+
+      setCameraError(errorMessage);
+      alert(`${errorMessage}. Please use the Upload Photo option instead.`);
     }
   };
 
@@ -576,18 +591,20 @@ export const IncidentsView: React.FC = () => {
 
                 {showCamera && (
                   <div className="space-y-3">
-                    <div className="relative bg-black rounded-lg overflow-hidden">
+                    <div className="relative bg-gray-900 rounded-lg overflow-hidden" style={{ minHeight: '256px' }}>
                       <video
                         ref={videoRef}
                         autoPlay
                         playsInline
                         muted
                         className="w-full h-64 object-cover"
-                        onLoadedMetadata={(e) => {
-                          const video = e.currentTarget;
-                          video.play().catch(err => console.error('Play error:', err));
-                        }}
+                        style={{ backgroundColor: '#111827' }}
                       />
+                      {!videoRef.current?.srcObject && (
+                        <div className="absolute inset-0 flex items-center justify-center text-white text-sm">
+                          Loading camera...
+                        </div>
+                      )}
                     </div>
                     <div className="flex space-x-2">
                       <button
