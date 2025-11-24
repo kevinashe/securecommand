@@ -29,14 +29,7 @@ export const IncidentsView: React.FC = () => {
   }, [profile]);
 
   useEffect(() => {
-    return () => {
-      stopCamera();
-    };
-  }, []);
-
-  useEffect(() => {
     if (!showCreateModal) {
-      stopCamera();
       setCapturedPhotos([]);
     }
   }, [showCreateModal]);
