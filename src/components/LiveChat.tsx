@@ -230,69 +230,76 @@ export const LiveChat: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Contacts</h2>
-            <Users className="h-5 w-5 text-gray-400" />
+        <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4">
+            <div className="flex items-center justify-between text-white">
+              <h2 className="text-lg font-semibold">Contacts</h2>
+              <Users className="h-5 w-5" />
+            </div>
           </div>
 
-          <button
-            onClick={() => setSelectedUser(null)}
-            className={`w-full flex items-center space-x-3 p-3 rounded-lg mb-2 transition-colors ${
-              selectedUser === null
-                ? 'bg-blue-50 border-2 border-blue-500'
-                : 'hover:bg-gray-50 border-2 border-transparent'
-            }`}
-          >
-            <div className="bg-blue-100 p-2 rounded-full">
-              <MessageCircle className="h-5 w-5 text-blue-600" />
-            </div>
-            <div className="flex-1 text-left">
-              <p className="font-medium text-gray-900">Group Chat</p>
-              <p className="text-sm text-gray-500">Everyone</p>
-            </div>
-          </button>
+          <div className="p-4">
+            <button
+              onClick={() => setSelectedUser(null)}
+              className={`w-full flex items-center space-x-3 p-3 rounded-xl mb-2 transition-all duration-200 ${
+                selectedUser === null
+                  ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-500 shadow-sm'
+                  : 'hover:bg-gray-50 border-2 border-transparent hover:shadow-sm'
+              }`}
+            >
+              <div className={`${selectedUser === null ? 'bg-blue-600' : 'bg-blue-100'} p-2.5 rounded-xl`}>
+                <MessageCircle className={`h-5 w-5 ${selectedUser === null ? 'text-white' : 'text-blue-600'}`} />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="font-semibold text-gray-900">Group Chat</p>
+                <p className="text-xs text-gray-500">Everyone in team</p>
+              </div>
+            </button>
 
-          <div className="space-y-2">
-            {users.map((user) => {
-              const unreadCount = getUnreadCount(user.id);
-              return (
-                <button
-                  key={user.id}
-                  onClick={() => setSelectedUser(user.id)}
-                  className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                    selectedUser === user.id
-                      ? 'bg-blue-50 border-2 border-blue-500'
-                      : 'hover:bg-gray-50 border-2 border-transparent'
-                  }`}
-                >
-                  <div className="bg-gray-100 p-2 rounded-full">
-                    <User className="h-5 w-5 text-gray-600" />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <p className="font-medium text-gray-900">{user.full_name}</p>
-                    <p className="text-sm text-gray-500 capitalize">{user.role}</p>
-                  </div>
-                  {unreadCount > 0 && (
-                    <span className="bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                      {unreadCount}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+            <div className="space-y-2">
+              {users.map((user) => {
+                const unreadCount = getUnreadCount(user.id);
+                return (
+                  <button
+                    key={user.id}
+                    onClick={() => setSelectedUser(user.id)}
+                    className={`w-full flex items-center space-x-3 p-3 rounded-xl transition-all duration-200 ${
+                      selectedUser === user.id
+                        ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-500 shadow-sm'
+                        : 'hover:bg-gray-50 border-2 border-transparent hover:shadow-sm'
+                    }`}
+                  >
+                    <div className={`${selectedUser === user.id ? 'bg-blue-600' : 'bg-gray-200'} p-2.5 rounded-xl relative`}>
+                      <User className={`h-5 w-5 ${selectedUser === user.id ? 'text-white' : 'text-gray-600'}`} />
+                      {user.is_active && (
+                        <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-green-500 border-2 border-white rounded-full"></span>
+                      )}
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="font-semibold text-gray-900 text-sm">{user.full_name}</p>
+                      <p className="text-xs text-gray-500 capitalize">{user.role}</p>
+                    </div>
+                    {unreadCount > 0 && (
+                      <span className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center shadow-md">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
-        <div className="lg:col-span-3 bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col h-[700px]">
-          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">
+        <div className="lg:col-span-3 bg-white rounded-xl shadow-lg border border-gray-100 flex flex-col h-[700px] overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 flex items-center justify-between">
+            <div className="text-white">
+              <h2 className="text-lg font-semibold">
                 {selectedUser
                   ? users.find(u => u.id === selectedUser)?.full_name || 'Unknown User'
                   : 'Group Chat'}
               </h2>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-blue-100 capitalize">
                 {selectedUser
                   ? users.find(u => u.id === selectedUser)?.role
                   : 'Team communication'}
@@ -301,19 +308,21 @@ export const LiveChat: React.FC = () => {
             {selectedUser && (
               <button
                 onClick={() => setSelectedUser(null)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors text-white"
               >
-                <X className="h-5 w-5 text-gray-500" />
+                <X className="h-5 w-5" />
               </button>
             )}
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-gray-50 to-white">
             {filteredMessages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center">
-                <MessageCircle className="h-16 w-16 text-gray-300 mb-4" />
-                <p className="text-gray-500 text-lg font-medium">No messages yet</p>
-                <p className="text-gray-400 text-sm">Start a conversation below</p>
+                <div className="bg-gradient-to-r from-blue-100 to-blue-200 p-6 rounded-full mb-4">
+                  <MessageCircle className="h-16 w-16 text-blue-600" />
+                </div>
+                <p className="text-gray-700 text-lg font-semibold">No messages yet</p>
+                <p className="text-gray-500 text-sm mt-1">Start a conversation below</p>
               </div>
             ) : (
               filteredMessages.map((message) => {
@@ -321,24 +330,24 @@ export const LiveChat: React.FC = () => {
                 return (
                   <div
                     key={message.id}
-                    className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+                    className={`flex ${isOwn ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2`}
                   >
                     <div
                       className={`max-w-[70%] ${
                         isOwn
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-900'
-                      } rounded-lg p-3`}
+                          ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
+                          : 'bg-white text-gray-900 shadow-sm border border-gray-200'
+                      } rounded-2xl p-4 transition-all duration-200 hover:shadow-lg`}
                     >
                       {!isOwn && (
-                        <p className="text-xs font-semibold mb-1 opacity-75">
+                        <p className="text-xs font-semibold mb-2 text-blue-600">
                           {message.sender?.full_name}
                         </p>
                       )}
-                      <p className="text-sm whitespace-pre-wrap break-words">{message.message}</p>
+                      <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{message.message}</p>
                       <p
-                        className={`text-xs mt-1 ${
-                          isOwn ? 'text-blue-100' : 'text-gray-500'
+                        className={`text-xs mt-2 ${
+                          isOwn ? 'text-blue-100' : 'text-gray-400'
                         }`}
                       >
                         {new Date(message.created_at).toLocaleTimeString([], {
@@ -354,8 +363,8 @@ export const LiveChat: React.FC = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          <form onSubmit={sendMessage} className="p-4 border-t border-gray-200">
-            <div className="flex space-x-2">
+          <form onSubmit={sendMessage} className="p-4 bg-white border-t border-gray-200">
+            <div className="flex space-x-3">
               <input
                 type="text"
                 value={newMessage}
@@ -365,16 +374,16 @@ export const LiveChat: React.FC = () => {
                     ? users.find(u => u.id === selectedUser)?.full_name || 'user'
                     : 'everyone'
                 }...`}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 disabled={sending}
               />
               <button
                 type="submit"
                 disabled={!newMessage.trim() || sending}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 shadow-md hover:shadow-lg"
               >
                 <Send className="h-5 w-5" />
-                <span>Send</span>
+                <span className="font-medium">Send</span>
               </button>
             </div>
           </form>
