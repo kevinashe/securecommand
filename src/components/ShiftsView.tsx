@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Calendar, Plus, Clock, MapPin, User, X, ChevronLeft, ChevronRight, List, Edit, Trash2 } from 'lucide-react';
+import { Calendar, Plus, Clock, MapPin, User, X, ChevronLeft, ChevronRight, List, Edit, Trash2, Play } from 'lucide-react';
 
 type ViewMode = 'week' | 'month' | 'list';
 
@@ -921,28 +921,82 @@ export const ShiftsView: React.FC = () => {
               )}
 
               {canManageShifts && (
-                <div className="flex space-x-3 pt-4 border-t">
-                  <button
-                    onClick={() => {
-                      setShowShiftDetailModal(false);
-                      openEditModal(selectedShift);
-                    }}
-                    className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    <Edit className="h-4 w-4" />
-                    <span>Edit</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowShiftDetailModal(false);
-                      handleDeleteShift(selectedShift.id);
-                    }}
+                <>
+                  {selectedShift.status === 'scheduled' && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          const { error } = await supabase
+                            .from('shifts')
+                            .update({ status: 'active' })
+                            .eq('id', selectedShift.id);
+
+                          if (error) throw error;
+
+                          setShowShiftDetailModal(false);
+                          setSelectedShift(null);
+                          fetchShifts();
+                        } catch (error) {
+                          console.error('Error starting shift:', error);
+                          alert('Failed to start shift');
+                        }
+                      }}
+                      className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                    >
+                      <Play className="h-5 w-5" />
+                      <span>Start Shift</span>
+                    </button>
+                  )}
+
+                  {selectedShift.status === 'active' && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          const { error } = await supabase
+                            .from('shifts')
+                            .update({ status: 'completed' })
+                            .eq('id', selectedShift.id);
+
+                          if (error) throw error;
+
+                          setShowShiftDetailModal(false);
+                          setSelectedShift(null);
+                          fetchShifts();
+                        } catch (error) {
+                          console.error('Error ending shift:', error);
+                          alert('Failed to end shift');
+                        }
+                      }}
+                      className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
+                    >
+                      <Clock className="h-5 w-5" />
+                      <span>End Shift</span>
+                    </button>
+                  )}
+
+                  <div className="flex space-x-3 pt-4 border-t">
+                    <button
+                      onClick={() => {
+                        setShowShiftDetailModal(false);
+                        openEditModal(selectedShift);
+                      }}
+                      className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <Edit className="h-4 w-4" />
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowShiftDetailModal(false);
+                        handleDeleteShift(selectedShift.id);
+                      }}
                     className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
                     <span>Delete</span>
                   </button>
                 </div>
+                </>
               )}
             </div>
           </div>
