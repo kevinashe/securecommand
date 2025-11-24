@@ -321,64 +321,51 @@ export const SitesView: React.FC = () => {
     }
   };
 
-  const printQRCode = async () => {
+  const printQRCode = () => {
     if (!qrCodeUrl || !selectedSite) return;
 
-    try {
-      const response = await fetch(qrCodeUrl);
-      const blob = await response.blob();
-      const dataUrl = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.readAsDataURL(blob);
-      });
-
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(`
-          <!DOCTYPE html>
-          <html>
-            <head>
-              <title>Print QR Code - ${selectedSite.name}</title>
-              <style>
-                body {
-                  display: flex;
-                  flex-direction: column;
-                  align-items: center;
-                  justify-content: center;
-                  padding: 40px;
-                  font-family: Arial, sans-serif;
-                }
-                h1 {
-                  margin-bottom: 10px;
-                  font-size: 24px;
-                }
-                p {
-                  margin: 5px 0;
-                  color: #666;
-                  font-size: 14px;
-                }
-                img {
-                  margin: 20px 0;
-                  max-width: 400px;
-                }
-                @media print {
-                  body { padding: 20px; }
-                }
-              </style>
-            </head>
-            <body>
-              <h1>${selectedSite.name}</h1>
-              <p>${selectedSite.address}</p>
-              <img src="${dataUrl}" alt="QR Code" onload="setTimeout(() => window.print(), 100);" />
-              <p>Scan this QR code to check in at this site</p>
-            </body>
-          </html>
-        `);
-        printWindow.document.close();
-      }
-    } catch (error) {
-      console.error('Error preparing QR code for print:', error);
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Print QR Code - ${selectedSite.name}</title>
+            <style>
+              body {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 40px;
+                font-family: Arial, sans-serif;
+              }
+              h1 {
+                margin-bottom: 10px;
+                font-size: 24px;
+              }
+              p {
+                margin: 5px 0;
+                color: #666;
+                font-size: 14px;
+              }
+              img {
+                margin: 20px 0;
+                max-width: 450px;
+              }
+              @media print {
+                body { padding: 20px; }
+              }
+            </style>
+          </head>
+          <body>
+            <p>${selectedSite.address}</p>
+            <img src="${qrCodeUrl}" alt="QR Code" onload="setTimeout(() => window.print(), 100);" />
+            <p>Scan this QR code to check in at this site</p>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
     }
   };
 
