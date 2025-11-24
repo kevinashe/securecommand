@@ -77,36 +77,50 @@ export const AnalyticsView: React.FC = () => {
       startDate.setDate(startDate.getDate() - dateRange);
       const startDateStr = startDate.toISOString();
 
+      let siteIds: string[] = [];
+
+      if (profile?.role === 'company_admin' || profile?.role === 'site_manager') {
+        const { data: sites } = await supabase
+          .from('sites')
+          .select('id')
+          .eq('company_id', profile.company_id);
+        siteIds = sites?.map(s => s.id) || [];
+      }
+
       let guardsQuery = supabase
         .from('profiles')
         .select('id', { count: 'exact', head: true })
         .in('role', ['security_officer', 'site_manager']);
+
+      if (profile?.role === 'company_admin' || profile?.role === 'site_manager') {
+        guardsQuery = guardsQuery.eq('company_id', profile.company_id);
+      }
 
       let shiftsQuery = supabase
         .from('shifts')
         .select('*')
         .gte('created_at', startDateStr);
 
+      if (siteIds.length > 0) {
+        shiftsQuery = shiftsQuery.in('site_id', siteIds);
+      }
+
       let incidentsQuery = supabase
         .from('incidents')
         .select('*')
         .gte('created_at', startDateStr);
+
+      if (siteIds.length > 0) {
+        incidentsQuery = incidentsQuery.in('site_id', siteIds);
+      }
 
       let checkInsQuery = supabase
         .from('check_ins')
         .select('*', { count: 'exact' })
         .gte('checked_in_at', startDateStr);
 
-      if (profile?.role === 'company_admin' || profile?.role === 'site_manager') {
-        guardsQuery = guardsQuery.eq('company_id', profile.company_id);
-
-        shiftsQuery = shiftsQuery.in('site_id',
-          supabase.from('sites').select('id').eq('company_id', profile.company_id)
-        );
-
-        incidentsQuery = incidentsQuery.in('site_id',
-          supabase.from('sites').select('id').eq('company_id', profile.company_id)
-        );
+      if (profile?.company_id) {
+        checkInsQuery = checkInsQuery.eq('company_id', profile.company_id);
       }
 
       let sosQuery = supabase
@@ -114,10 +128,18 @@ export const AnalyticsView: React.FC = () => {
         .select('*', { count: 'exact' })
         .gte('created_at', startDateStr);
 
+      if (profile?.company_id) {
+        sosQuery = sosQuery.eq('company_id', profile.company_id);
+      }
+
       let violationsQuery = supabase
         .from('geofence_violations')
         .select('*', { count: 'exact' })
         .gte('created_at', startDateStr);
+
+      if (profile?.company_id) {
+        violationsQuery = violationsQuery.eq('company_id', profile.company_id);
+      }
 
       const [guardsRes, shiftsRes, incidentsRes, checkInsRes, sosRes, violationsRes] = await Promise.all([
         guardsQuery,
