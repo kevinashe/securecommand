@@ -100,18 +100,33 @@ export const IncidentsView: React.FC = () => {
 
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
-        audio: false
-      });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        streamRef.current = stream;
-      }
       setShowCamera(true);
+
+      setTimeout(async () => {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: 'environment',
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false
+        });
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          streamRef.current = stream;
+
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current?.play().catch(err => {
+              console.error('Error playing video:', err);
+            });
+          };
+        }
+      }, 100);
     } catch (error) {
       console.error('Error accessing camera:', error);
       alert('Could not access camera. Please check permissions.');
+      setShowCamera(false);
     }
   };
 
@@ -513,7 +528,12 @@ export const IncidentsView: React.FC = () => {
                         ref={videoRef}
                         autoPlay
                         playsInline
+                        muted
                         className="w-full h-64 object-cover"
+                        onLoadedMetadata={(e) => {
+                          const video = e.currentTarget;
+                          video.play().catch(err => console.error('Play error:', err));
+                        }}
                       />
                     </div>
                     <div className="flex space-x-2">
