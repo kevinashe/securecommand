@@ -21,9 +21,11 @@ export const IncidentsView: React.FC = () => {
 
   const [capturedPhotos, setCapturedPhotos] = useState<string[]>([]);
   const [showCamera, setShowCamera] = useState(false);
+  const [cameraError, setCameraError] = useState<string>('');
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const streamRef = React.useRef<MediaStream | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadIncidents();
@@ -99,34 +101,57 @@ export const IncidentsView: React.FC = () => {
   };
 
   const startCamera = async () => {
+    setCameraError('');
+    setShowCamera(true);
+
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     try {
-      setShowCamera(true);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'environment',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: false
+      });
 
-      setTimeout(async () => {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: 'environment',
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-          },
-          audio: false
-        });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        streamRef.current = stream;
 
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          streamRef.current = stream;
-
-          videoRef.current.onloadedmetadata = () => {
-            videoRef.current?.play().catch(err => {
+        videoRef.current.addEventListener('loadedmetadata', () => {
+          if (videoRef.current) {
+            videoRef.current.play().catch(err => {
               console.error('Error playing video:', err);
+              setCameraError('Failed to play video stream');
             });
-          };
-        }
-      }, 100);
-    } catch (error) {
+          }
+        });
+      }
+    } catch (error: any) {
       console.error('Error accessing camera:', error);
-      alert('Could not access camera. Please check permissions.');
+      setCameraError(error.message || 'Could not access camera');
       setShowCamera(false);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setCapturedPhotos(prev => [...prev, event.target!.result as string]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -510,15 +535,43 @@ export const IncidentsView: React.FC = () => {
                   Photos
                 </label>
 
+                {cameraError && (
+                  <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+                    {cameraError}
+                  </div>
+                )}
+
                 {!showCamera && (
-                  <button
-                    type="button"
-                    onClick={startCamera}
-                    className="w-full flex items-center justify-center space-x-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors"
-                  >
-                    <Camera className="h-5 w-5 text-gray-600" />
-                    <span className="text-gray-600">Take Photo</span>
-                  </button>
+                  <div className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={startCamera}
+                      className="w-full flex items-center justify-center space-x-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors"
+                    >
+                      <Camera className="h-5 w-5 text-gray-600" />
+                      <span className="text-gray-600">Use Camera</span>
+                    </button>
+
+                    <div className="relative">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        multiple
+                        onChange={handleFileSelect}
+                        className="hidden"
+                        id="photo-upload"
+                      />
+                      <label
+                        htmlFor="photo-upload"
+                        className="w-full flex items-center justify-center space-x-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer"
+                      >
+                        <Camera className="h-5 w-5 text-gray-600" />
+                        <span className="text-gray-600">Upload Photo</span>
+                      </label>
+                    </div>
+                  </div>
                 )}
 
                 {showCamera && (
