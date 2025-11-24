@@ -38,7 +38,7 @@ export const ShiftsView: React.FC = () => {
 
       let query = supabase
         .from('shifts')
-        .select('*, sites(name, address), profiles(full_name)')
+        .select('*, sites!inner(name, address, company_id), profiles(full_name)')
         .gte('start_time', startDate.toISOString())
         .lte('start_time', endDate.toISOString())
         .order('start_time', { ascending: true });
