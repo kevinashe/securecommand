@@ -19,11 +19,30 @@ export const IncidentsView: React.FC = () => {
     longitude: null as number | null,
   });
 
+  const [capturedPhotos, setCapturedPhotos] = useState<string[]>([]);
+  const [showCamera, setShowCamera] = useState(false);
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+  const streamRef = React.useRef<MediaStream | null>(null);
+
   useEffect(() => {
     loadIncidents();
     loadSites();
     getCurrentLocation();
   }, [profile]);
+
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!showCreateModal) {
+      stopCamera();
+      setCapturedPhotos([]);
+    }
+  }, [showCreateModal]);
 
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
@@ -43,7 +62,7 @@ export const IncidentsView: React.FC = () => {
     try {
       let query = supabase
         .from('incidents')
-        .select('*, sites!inner(name, company_id), profiles(full_name)')
+        .select('*, sites!inner(name, company_id), profiles(full_name), incident_photos(photo_url)')
         .order('created_at', { ascending: false });
 
       if (profile.role === 'security_officer') {
@@ -79,20 +98,109 @@ export const IncidentsView: React.FC = () => {
     }
   };
 
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+        audio: false
+      });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        streamRef.current = stream;
+      }
+      setShowCamera(true);
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      alert('Could not access camera. Please check permissions.');
+    }
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setShowCamera(false);
+  };
+
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(video, 0, 0);
+        const photoData = canvas.toDataURL('image/jpeg', 0.8);
+        setCapturedPhotos(prev => [...prev, photoData]);
+        stopCamera();
+      }
+    }
+  };
+
+  const removePhoto = (index: number) => {
+    setCapturedPhotos(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadPhotosToStorage = async (incidentId: string, photos: string[]) => {
+    const photoUrls: string[] = [];
+
+    for (let i = 0; i < photos.length; i++) {
+      const photo = photos[i];
+      const base64Data = photo.split(',')[1];
+      const blob = await fetch(`data:image/jpeg;base64,${base64Data}`).then(r => r.blob());
+
+      const fileName = `incident_${incidentId}_${Date.now()}_${i}.jpg`;
+      const filePath = `incidents/${incidentId}/${fileName}`;
+
+      const { data, error } = await supabase.storage
+        .from('incident-photos')
+        .upload(filePath, blob, {
+          contentType: 'image/jpeg',
+          upsert: false
+        });
+
+      if (!error && data) {
+        const { data: urlData } = supabase.storage
+          .from('incident-photos')
+          .getPublicUrl(data.path);
+
+        photoUrls.push(urlData.publicUrl);
+      }
+    }
+
+    return photoUrls;
+  };
+
   const handleCreateIncident = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
-      const { error } = await supabase.from('incidents').insert([
+      const { data: incidentData, error } = await supabase.from('incidents').insert([
         {
           ...formData,
           reported_by: profile!.id,
           status: 'open',
           occurred_at: new Date().toISOString(),
         },
-      ]);
+      ]).select().single();
 
-      if (!error) {
+      if (!error && incidentData) {
+        // Upload photos if any were captured
+        if (capturedPhotos.length > 0) {
+          const photoUrls = await uploadPhotosToStorage(incidentData.id, capturedPhotos);
+
+          // Save photo records to incident_photos table
+          const photoRecords = photoUrls.map(url => ({
+            incident_id: incidentData.id,
+            photo_url: url,
+            uploaded_by: profile!.id
+          }));
+
+          await supabase.from('incident_photos').insert(photoRecords);
+        }
+
         setShowCreateModal(false);
         setFormData({
           site_id: '',
@@ -102,6 +210,7 @@ export const IncidentsView: React.FC = () => {
           latitude: null,
           longitude: null,
         });
+        setCapturedPhotos([]);
         loadIncidents();
         getCurrentLocation();
       }
@@ -200,6 +309,20 @@ export const IncidentsView: React.FC = () => {
                   </div>
 
                   <p className="text-gray-700">{incident.description}</p>
+
+                  {incident.incident_photos && incident.incident_photos.length > 0 && (
+                    <div className="flex gap-2 overflow-x-auto py-2">
+                      {incident.incident_photos.map((photo: any, idx: number) => (
+                        <img
+                          key={idx}
+                          src={photo.photo_url}
+                          alt={`Incident photo ${idx + 1}`}
+                          className="h-24 w-24 object-cover rounded-lg border border-gray-200 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => window.open(photo.photo_url, '_blank')}
+                        />
+                      ))}
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="flex items-center space-x-2">
@@ -366,6 +489,76 @@ export const IncidentsView: React.FC = () => {
                   <span className="text-sm text-green-700">Location captured</span>
                 </div>
               )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Photos
+                </label>
+
+                {!showCamera && (
+                  <button
+                    type="button"
+                    onClick={startCamera}
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors"
+                  >
+                    <Camera className="h-5 w-5 text-gray-600" />
+                    <span className="text-gray-600">Take Photo</span>
+                  </button>
+                )}
+
+                {showCamera && (
+                  <div className="space-y-3">
+                    <div className="relative bg-black rounded-lg overflow-hidden">
+                      <video
+                        ref={videoRef}
+                        autoPlay
+                        playsInline
+                        className="w-full h-64 object-cover"
+                      />
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        type="button"
+                        onClick={capturePhoto}
+                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+                      >
+                        <Camera className="h-4 w-4" />
+                        <span>Capture</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={stopCamera}
+                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {capturedPhotos.length > 0 && (
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    {capturedPhotos.map((photo, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={photo}
+                          alt={`Captured ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-lg"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removePhoto(index)}
+                          className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <canvas ref={canvasRef} className="hidden" />
 
               <div className="flex space-x-3 pt-4">
                 <button
