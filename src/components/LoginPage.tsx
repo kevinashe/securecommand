@@ -176,7 +176,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToCompanySignup 
             {!isForgotPassword && (
               <div>
                 <label htmlFor="companyCode" className="block text-sm font-medium text-gray-700 mb-2">
-                  Company Code {!isSignUp && <span className="text-gray-400 font-normal">(optional for admins)</span>}
+                  Company Code {!isSignUp && <span className="text-gray-400 font-normal">(optional)</span>}
                   {isSignUp && <span className="text-red-500">*</span>}
                 </label>
                 <input
@@ -192,7 +192,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToCompanySignup 
                 <p className="text-xs text-gray-500 mt-1">
                   {isSignUp
                     ? 'Enter the company code provided by your administrator. Contact your company admin if you don\'t have one.'
-                    : 'Enter the code provided by your company. Admins and managers can leave this blank.'
+                    : 'Only needed for first-time login. You can leave this blank after your initial sign-in.'
                   }
                 </p>
               </div>

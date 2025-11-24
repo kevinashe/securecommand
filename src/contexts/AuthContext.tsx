@@ -130,16 +130,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error: { message: 'No profile found. Please complete your registration.' } as AuthError };
       }
 
-      // Super admins, company admins, and site managers don't need company codes
-      if (userProfile.role === 'super_admin' || userProfile.role === 'company_admin' || userProfile.role === 'site_manager') {
-        await fetchProfile(authData.user.id);
+      // If user already has a company_id, they don't need to enter company code again
+      if (userProfile.company_id) {
+        // Get the company code for this user's company
+        const { data: companyData } = await supabase
+          .from('companies')
+          .select('company_code')
+          .eq('id', userProfile.company_id)
+          .maybeSingle();
+
+        await fetchProfile(authData.user.id, companyData?.company_code);
         return { error: null };
       }
 
-      // For other roles (security_officer), verify company code
+      // For users without a company_id (shouldn't happen normally), require company code
       if (!companyCode) {
         await supabase.auth.signOut();
-        return { error: { message: 'Company code is required for security officers' } as AuthError };
+        return { error: { message: 'Company code is required' } as AuthError };
       }
 
       const { data: company, error: companyError } = await supabase
