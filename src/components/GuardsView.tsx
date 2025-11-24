@@ -6,7 +6,6 @@ import { Users, Plus, Edit, Trash2, X, Shield, Mail, Phone, MapPin, History, Bui
 interface Guard {
   id: string;
   full_name: string;
-  email: string;
   phone: string;
   role: string;
   company_id: string;
@@ -59,7 +58,7 @@ export const GuardsView: React.FC = () => {
     try {
       let query = supabase
         .from('profiles')
-        .select('id, full_name, email, role, company_id, avatar_url, phone, staff_code, is_active, employment_status, created_at, updated_at')
+        .select('id, full_name, role, company_id, avatar_url, phone, staff_code, is_active, employment_status, created_at, updated_at')
         .order('created_at', { ascending: false });
 
       // Super admins can see all users including other super admins and company admins
@@ -248,7 +247,7 @@ export const GuardsView: React.FC = () => {
     setSelectedGuard(guard);
     setFormData({
       full_name: guard.full_name,
-      email: guard.email,
+      email: '',
       phone: guard.phone,
       password: '',
       role: guard.role,
@@ -334,10 +333,6 @@ export const GuardsView: React.FC = () => {
                     </span>
                   </div>
                 )}
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <Mail className="h-4 w-4" />
-                  <span className="truncate">{guard.email}</span>
-                </div>
                 <div className="flex items-center space-x-2 text-sm text-gray-600">
                   <Phone className="h-4 w-4" />
                   <span>{guard.phone || 'No phone'}</span>
