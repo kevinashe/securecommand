@@ -43,11 +43,13 @@ export const IncidentsView: React.FC = () => {
     try {
       let query = supabase
         .from('incidents')
-        .select('*, sites(name), profiles(full_name)')
+        .select('*, sites!inner(name, company_id), profiles(full_name)')
         .order('created_at', { ascending: false });
 
       if (profile.role === 'security_officer') {
         query = query.eq('reported_by', profile.id);
+      } else if (profile.role === 'company_admin' || profile.role === 'site_manager') {
+        query = query.eq('sites.company_id', profile.company_id);
       }
 
       const { data, error } = await query;

@@ -37,9 +37,14 @@ export const AuditLogsView: React.FC = () => {
     try {
       let query = supabase
         .from('audit_logs')
-        .select('*, profiles(full_name, role)')
+        .select('*, profiles!inner(full_name, role, company_id)')
         .order('created_at', { ascending: false })
         .limit(100);
+
+      // Company admins should only see logs from their company
+      if (profile?.role === 'company_admin') {
+        query = query.eq('profiles.company_id', profile.company_id);
+      }
 
       const { data, error } = await query;
 
