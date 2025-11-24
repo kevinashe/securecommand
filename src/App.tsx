@@ -19,7 +19,6 @@ import { PaymentsView } from './components/PaymentsView';
 import { CompanySettings } from './components/CompanySettings';
 import { ProfileSettings } from './components/ProfileSettings';
 import { NotificationsView } from './components/NotificationsView';
-import { AuditLogsView } from './components/AuditLogsView';
 import { AnalyticsView } from './components/AnalyticsView';
 import { AssignmentHistoryView } from './components/AssignmentHistoryView';
 import { PricingPlansView } from './components/PricingPlansView';
@@ -91,8 +90,6 @@ const AppContent: React.FC = () => {
         return <ProfileSettings />;
       case 'notifications':
         return <NotificationsView />;
-      case 'audit-logs':
-        return <AuditLogsView />;
       case 'analytics':
         return <AnalyticsView />;
       case 'history':
