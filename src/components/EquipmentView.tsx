@@ -45,6 +45,7 @@ export const EquipmentView: React.FC = () => {
     site_id: '',
     status: 'available',
   });
+  const [error, setError] = useState<string | null>(null);
 
   const equipmentTypes = [
     { value: 'radio', label: 'Radio' },
@@ -133,8 +134,9 @@ export const EquipmentView: React.FC = () => {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     try {
-      const { error } = await supabase.from('equipment').insert([
+      const { error: insertError } = await supabase.from('equipment').insert([
         {
           ...formData,
           assigned_to: formData.assigned_to || null,
@@ -143,20 +145,25 @@ export const EquipmentView: React.FC = () => {
         },
       ]);
 
-      if (!error) {
-        setShowCreateModal(false);
-        setFormData({
-          name: '',
-          type: 'radio',
-          serial_number: '',
-          assigned_to: '',
-          site_id: '',
-          status: 'available',
-        });
-        loadEquipment();
+      if (insertError) {
+        console.error('Error creating equipment:', insertError);
+        setError(insertError.message);
+        return;
       }
+
+      setShowCreateModal(false);
+      setFormData({
+        name: '',
+        type: 'radio',
+        serial_number: '',
+        assigned_to: '',
+        site_id: '',
+        status: 'available',
+      });
+      loadEquipment();
     } catch (error) {
       console.error('Error creating equipment:', error);
+      setError('Failed to create equipment. Please try again.');
     }
   };
 
@@ -345,6 +352,11 @@ export const EquipmentView: React.FC = () => {
             </div>
 
             <form onSubmit={handleCreate} className="space-y-4">
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                  {error}
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
                 <input
