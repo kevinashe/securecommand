@@ -534,32 +534,21 @@ export const CompanySettings: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={saving}
-            className="flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Save className="h-5 w-5" />
-            <span>{saving ? 'Saving...' : 'Save Changes'}</span>
-          </button>
-        </div>
-      </form>
-
-      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">Payment Methods</h2>
-            <p className="text-sm text-gray-600 mt-1">Manage your payment methods for invoices</p>
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">Payment Methods</h2>
+              <p className="text-sm text-gray-600 mt-1">Manage your payment methods for invoices</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowAddMethodModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+            >
+              <Plus className="h-5 w-5" />
+              <span>Add Method</span>
+            </button>
           </div>
-          <button
-            onClick={() => setShowAddMethodModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
-          >
-            <Plus className="h-5 w-5" />
-            <span>Add Method</span>
-          </button>
-        </div>
 
         {paymentMethods.length === 0 ? (
           <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-lg">
@@ -619,7 +608,19 @@ export const CompanySettings: React.FC = () => {
             ))}
           </div>
         )}
-      </div>
+        </div>
+
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            disabled={saving}
+            className="flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Save className="h-5 w-5" />
+            <span>{saving ? 'Saving...' : 'Save Changes'}</span>
+          </button>
+        </div>
+      </form>
 
       {showChangePlanModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
