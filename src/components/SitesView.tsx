@@ -266,8 +266,41 @@ export const SitesView: React.FC = () => {
       type: 'site_checkin'
     });
 
-    const url = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qrData)}`;
-    setQrCodeUrl(url);
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qrData)}`;
+
+    try {
+      const response = await fetch(qrUrl);
+      const blob = await response.blob();
+      const img = new Image();
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        if (ctx) {
+          canvas.width = 450;
+          canvas.height = 480;
+
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          ctx.drawImage(img, 25, 60, 400, 400);
+
+          ctx.fillStyle = '#1e40af';
+          ctx.font = 'bold 24px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText(site.name, canvas.width / 2, 35);
+
+          const finalUrl = canvas.toDataURL('image/png');
+          setQrCodeUrl(finalUrl);
+        }
+      };
+
+      img.src = URL.createObjectURL(blob);
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+      setQrCodeUrl(qrUrl);
+    }
   };
 
   const downloadQRCode = async () => {
