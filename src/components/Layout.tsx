@@ -29,14 +29,14 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
     if (profile?.role === 'super_admin') {
       return [
         { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+        { id: 'leads', icon: UserPlus, label: 'Leads' },
         { id: 'companies', icon: Building, label: 'Companies' },
         { id: 'guards', icon: Users, label: 'User Management' },
-        { id: 'leads', icon: UserPlus, label: 'Leads' },
         { id: 'pricing-plans', icon: DollarSign, label: 'Pricing Plans' },
-        { id: 'analytics', icon: BarChart3, label: 'Analytics' },
-        { id: 'notifications', icon: Bell, label: 'Notifications' },
         { id: 'billing', icon: CreditCard, label: 'Billing' },
         { id: 'payments', icon: Wallet, label: 'Payments' },
+        { id: 'analytics', icon: BarChart3, label: 'Analytics' },
+        { id: 'notifications', icon: Bell, label: 'Notifications' },
         { id: 'website-cms', icon: Globe, label: 'Website Content' },
         { id: 'system-settings', icon: Settings, label: 'System Settings' },
       ];
@@ -45,19 +45,19 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
     if (profile?.role === 'company_admin') {
       return [
         { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-        { id: 'guards', icon: Users, label: 'Guards' },
         { id: 'sites', icon: MapPin, label: 'Sites' },
+        { id: 'guards', icon: Users, label: 'Guards' },
+        { id: 'equipment', icon: Package, label: 'Equipment' },
         { id: 'shifts', icon: Calendar, label: 'Shifts' },
         { id: 'advanced-scheduling', icon: Wand2, label: 'Smart Scheduling' },
         { id: 'time-attendance', icon: ClockIcon, label: 'Time & Attendance' },
         { id: 'patrol', icon: MapPin, label: 'Patrol Routes' },
-        { id: 'equipment', icon: Package, label: 'Equipment' },
         { id: 'tracking', icon: Radio, label: 'GPS Tracking' },
         { id: 'incidents', icon: AlertTriangle, label: 'Incidents' },
         { id: 'sos-alerts', icon: Bell, label: 'SOS Alerts' },
-        { id: 'messages', icon: MessageSquare, label: 'Messages' },
         { id: 'invoicing', icon: FileText, label: 'Invoicing' },
         { id: 'analytics', icon: BarChart3, label: 'Analytics' },
+        { id: 'messages', icon: MessageSquare, label: 'Messages' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
         { id: 'settings', icon: Settings, label: 'Settings' },
       ];
@@ -65,16 +65,17 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
 
     if (profile?.role === 'site_manager') {
       return [
+        { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
         { id: 'sites', icon: MapPin, label: 'Sites' },
+        { id: 'guards', icon: Users, label: 'Guards' },
         { id: 'shifts', icon: Calendar, label: 'Shifts' },
         { id: 'patrol', icon: MapPin, label: 'Patrol Routes' },
-        { id: 'guards', icon: Users, label: 'Guards' },
-        { id: 'messages', icon: MessageSquare, label: 'Messages' },
+        { id: 'equipment', icon: Package, label: 'Equipment' },
+        { id: 'tracking', icon: Radio, label: 'GPS Tracking' },
         { id: 'incidents', icon: AlertTriangle, label: 'Incidents' },
         { id: 'sos-alerts', icon: Bell, label: 'SOS Alerts' },
-        { id: 'tracking', icon: Radio, label: 'GPS Tracking' },
-        { id: 'equipment', icon: Package, label: 'Equipment' },
         { id: 'analytics', icon: BarChart3, label: 'Analytics' },
+        { id: 'messages', icon: MessageSquare, label: 'Messages' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
       ];
     }
@@ -88,11 +89,14 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
     }
 
     return [
-      ...baseItems,
+      { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
       { id: 'time-attendance', icon: ClockIcon, label: 'Clock In/Out' },
+      { id: 'shifts', icon: Calendar, label: 'My Shifts' },
       { id: 'patrol', icon: MapPin, label: 'Patrol' },
       { id: 'checkin', icon: Radio, label: 'Check In' },
+      { id: 'incidents', icon: AlertTriangle, label: 'Incidents' },
       { id: 'sos', icon: Bell, label: 'SOS' },
+      { id: 'messages', icon: MessageSquare, label: 'Messages' },
       { id: 'history', icon: History, label: 'My History' },
       { id: 'notifications', icon: Bell, label: 'Notifications' },
     ];
