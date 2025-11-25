@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { OfflineProvider } from './contexts/OfflineContext';
 import { LoginPage } from './components/LoginPage';
 import { Layout } from './components/Layout';
 import { Dashboard } from './components/Dashboard';
@@ -32,6 +33,9 @@ import { PricingPage } from './components/marketing/PricingPage';
 import { ContactPage } from './components/marketing/ContactPage';
 import { CompanySignup } from './components/CompanySignup';
 import { PasswordReset } from './components/PasswordReset';
+import { AdvancedScheduling } from './components/AdvancedScheduling';
+import { TimeAttendance } from './components/TimeAttendance';
+import { InvoicingView } from './components/InvoicingView';
 
 const AppContent: React.FC = () => {
   const { user, profile, loading } = useAuth();
@@ -101,6 +105,12 @@ const AppContent: React.FC = () => {
         return <WebsiteCMSSettings />;
       case 'client-portal':
         return <ClientPortalView />;
+      case 'advanced-scheduling':
+        return <AdvancedScheduling />;
+      case 'time-attendance':
+        return <TimeAttendance />;
+      case 'invoicing':
+        return <InvoicingView />;
       default:
         return <Dashboard />;
     }
@@ -179,7 +189,9 @@ const RootApp: React.FC = () => {
 function App() {
   return (
     <AuthProvider>
-      <RootApp />
+      <OfflineProvider>
+        <RootApp />
+      </OfflineProvider>
     </AuthProvider>
   );
 }

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { OfflineBanner } from './OfflineBanner';
 import {
   Shield, LogOut, Menu, X, LayoutDashboard, MapPin, Users,
   Calendar, AlertTriangle, Package, MessageSquare, CreditCard,
   Building, Bell, Radio, Wallet, Settings, BarChart3, History,
-  FileText, User, DollarSign, UserPlus, Globe
+  FileText, User, DollarSign, UserPlus, Globe, Wand2, Clock as ClockIcon
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -47,12 +48,15 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
         { id: 'guards', icon: Users, label: 'Guards' },
         { id: 'sites', icon: MapPin, label: 'Sites' },
         { id: 'shifts', icon: Calendar, label: 'Shifts' },
+        { id: 'advanced-scheduling', icon: Wand2, label: 'Smart Scheduling' },
+        { id: 'time-attendance', icon: ClockIcon, label: 'Time & Attendance' },
         { id: 'patrol', icon: MapPin, label: 'Patrol Routes' },
         { id: 'equipment', icon: Package, label: 'Equipment' },
         { id: 'tracking', icon: Radio, label: 'GPS Tracking' },
         { id: 'incidents', icon: AlertTriangle, label: 'Incidents' },
         { id: 'sos-alerts', icon: Bell, label: 'SOS Alerts' },
         { id: 'messages', icon: MessageSquare, label: 'Messages' },
+        { id: 'invoicing', icon: FileText, label: 'Invoicing' },
         { id: 'analytics', icon: BarChart3, label: 'Analytics' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
         { id: 'settings', icon: Settings, label: 'Settings' },
@@ -85,6 +89,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
 
     return [
       ...baseItems,
+      { id: 'time-attendance', icon: ClockIcon, label: 'Clock In/Out' },
       { id: 'patrol', icon: MapPin, label: 'Patrol' },
       { id: 'checkin', icon: Radio, label: 'Check In' },
       { id: 'sos', icon: Bell, label: 'SOS' },
@@ -179,6 +184,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
       </aside>
 
       <div className="flex-1 lg:ml-64">
+        <OfflineBanner />
         <header className="sticky top-0 z-40 bg-white border-b border-gray-200">
           <div className="flex items-center justify-between px-4 py-4">
             <button
