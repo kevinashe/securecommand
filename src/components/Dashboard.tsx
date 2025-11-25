@@ -3,7 +3,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase, Company } from '../lib/supabase';
 import {
   Users, MapPin, Calendar, AlertTriangle, TrendingUp,
-  Shield, Package, Bell, Activity, Building
+  Shield, Package, Bell, Activity, Building, ArrowRight,
+  Clock, CheckCircle, Zap, Eye
 } from 'lucide-react';
 import { SuperAdminDashboard } from './SuperAdminDashboard';
 
@@ -167,45 +168,120 @@ export const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
       label: 'Total Guards',
       value: stats.totalGuards,
       icon: Users,
-      color: 'bg-blue-500',
+      gradient: 'from-blue-500 to-blue-600',
+      bgColor: 'bg-blue-50',
+      iconColor: 'text-blue-600',
+      trend: '+12%',
+      action: 'guards',
       show: profile?.role !== 'security_officer',
     },
     {
       label: 'Active Sites',
       value: stats.activeSites,
       icon: MapPin,
-      color: 'bg-green-500',
+      gradient: 'from-green-500 to-emerald-600',
+      bgColor: 'bg-green-50',
+      iconColor: 'text-green-600',
+      trend: '+5%',
+      action: 'sites',
       show: profile?.role !== 'security_officer',
     },
     {
       label: 'Active Shifts',
       value: stats.activeShifts,
       icon: Calendar,
-      color: 'bg-purple-500',
+      gradient: 'from-purple-500 to-purple-600',
+      bgColor: 'bg-purple-50',
+      iconColor: 'text-purple-600',
+      trend: '+8%',
+      action: 'shifts',
       show: true,
     },
     {
       label: 'Open Incidents',
       value: stats.openIncidents,
       icon: AlertTriangle,
-      color: 'bg-orange-500',
+      gradient: 'from-orange-500 to-orange-600',
+      bgColor: 'bg-orange-50',
+      iconColor: 'text-orange-600',
+      trend: '-3%',
+      action: 'incidents',
       show: true,
     },
     {
       label: 'SOS Alerts',
       value: stats.activeSOSAlerts,
       icon: Bell,
-      color: 'bg-red-500',
+      gradient: 'from-red-500 to-red-600',
+      bgColor: 'bg-red-50',
+      iconColor: 'text-red-600',
+      trend: '0%',
+      action: 'sos-alerts',
       show: profile?.role !== 'security_officer',
     },
     {
       label: 'Equipment',
       value: stats.equipment,
       icon: Package,
-      color: 'bg-indigo-500',
+      gradient: 'from-cyan-500 to-cyan-600',
+      bgColor: 'bg-cyan-50',
+      iconColor: 'text-cyan-600',
+      trend: '+2%',
+      action: 'equipment',
       show: profile?.role !== 'security_officer',
     },
   ].filter(card => card.show);
+
+  const quickActions = [
+    {
+      label: 'Create Shift',
+      description: 'Schedule a new guard shift',
+      icon: Calendar,
+      color: 'bg-gradient-to-br from-blue-500 to-blue-600',
+      action: 'shifts',
+      show: profile?.role === 'company_admin' || profile?.role === 'site_manager',
+    },
+    {
+      label: 'Smart Schedule',
+      description: 'Auto-assign shifts with AI',
+      icon: Zap,
+      color: 'bg-gradient-to-br from-purple-500 to-purple-600',
+      action: 'advanced-scheduling',
+      show: profile?.role === 'company_admin',
+    },
+    {
+      label: 'Clock In',
+      description: 'Start your shift now',
+      icon: Clock,
+      color: 'bg-gradient-to-br from-green-500 to-green-600',
+      action: 'time-attendance',
+      show: profile?.role === 'security_officer',
+    },
+    {
+      label: 'Report Incident',
+      description: 'File a new incident report',
+      icon: AlertTriangle,
+      color: 'bg-gradient-to-br from-orange-500 to-orange-600',
+      action: 'incidents',
+      show: true,
+    },
+    {
+      label: 'View Analytics',
+      description: 'Check performance metrics',
+      icon: TrendingUp,
+      color: 'bg-gradient-to-br from-cyan-500 to-cyan-600',
+      action: 'analytics',
+      show: profile?.role === 'company_admin' || profile?.role === 'site_manager',
+    },
+    {
+      label: 'Generate Invoice',
+      description: 'Create client invoice',
+      icon: Package,
+      color: 'bg-gradient-to-br from-pink-500 to-pink-600',
+      action: 'invoicing',
+      show: profile?.role === 'company_admin',
+    },
+  ].filter(action => action.show);
 
   if (loading) {
     return (
@@ -220,21 +296,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-          <p className="text-gray-600">Welcome back, {profile?.full_name}</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-1">Dashboard</h1>
+          <p className="text-gray-600">Welcome back, <span className="font-semibold text-gray-900">{profile?.full_name}</span></p>
         </div>
         {company && profile?.role === 'company_admin' && (
-          <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-4">
             <div className="flex items-center gap-3">
-              <div className="bg-blue-100 p-2 rounded-lg">
-                <Building className="h-5 w-5 text-blue-600" />
+              <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+                <Building className="h-5 w-5 text-white" />
               </div>
               <div>
-                <p className="text-xs text-gray-600 mb-1">Company Code</p>
-                <p className="text-lg font-mono font-bold text-gray-900">{company.company_code}</p>
+                <p className="text-xs text-blue-100 mb-1">Company Code</p>
+                <p className="text-lg font-mono font-bold text-white">{company.company_code}</p>
               </div>
             </div>
           </div>
@@ -245,17 +321,50 @@ export const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
         {statCards.map((card) => {
           const Icon = card.icon;
           return (
-            <div key={card.label} className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">{card.label}</p>
-                  <p className="text-3xl font-bold text-gray-900">{card.value}</p>
+            <button
+              key={card.label}
+              onClick={() => onViewChange?.(card.action)}
+              className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 p-6 border border-gray-200 text-left group"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className={`${card.bgColor} p-3 rounded-xl group-hover:scale-110 transition-transform`}>
+                  <Icon className={`h-6 w-6 ${card.iconColor}`} />
                 </div>
-                <div className={`${card.color} p-3 rounded-lg`}>
-                  <Icon className="h-6 w-6 text-white" />
+                <div className="flex items-center gap-1 text-xs font-semibold text-green-600">
+                  <TrendingUp className="h-3 w-3" />
+                  {card.trend}
                 </div>
               </div>
-            </div>
+              <div>
+                <p className="text-sm text-gray-600 mb-1">{card.label}</p>
+                <p className="text-3xl font-bold text-gray-900">{card.value}</p>
+              </div>
+              <div className="mt-3 flex items-center text-sm text-gray-500 group-hover:text-blue-600 transition-colors">
+                <span>View details</span>
+                <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {quickActions.map((action) => {
+          const Icon = action.icon;
+          return (
+            <button
+              key={action.label}
+              onClick={() => onViewChange?.(action.action)}
+              className={`${action.color} rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 p-6 text-white text-left group hover:scale-105`}
+            >
+              <Icon className="h-8 w-8 mb-3 opacity-90" />
+              <h3 className="text-lg font-bold mb-1">{action.label}</h3>
+              <p className="text-sm text-white/80">{action.description}</p>
+              <div className="mt-3 flex items-center text-sm font-semibold">
+                <span>Get started</span>
+                <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </button>
           );
         })}
       </div>
@@ -264,17 +373,27 @@ export const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900">Recent Incidents</h2>
-            <AlertTriangle className="h-5 w-5 text-gray-400" />
+            <button
+              onClick={() => onViewChange?.('incidents')}
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+            >
+              View All
+              <ArrowRight className="h-4 w-4" />
+            </button>
           </div>
 
           {recentIncidents.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No recent incidents</p>
+            <div className="text-center py-8">
+              <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
+              <p className="text-gray-500">No recent incidents</p>
+            </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {recentIncidents.map((incident) => (
-                <div
+                <button
                   key={incident.id}
-                  className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg"
+                  onClick={() => onViewChange?.('incidents')}
+                  className="w-full flex items-start space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-left"
                 >
                   <div className={`p-2 rounded-lg ${
                     incident.severity === 'critical' ? 'bg-red-100' :
@@ -298,14 +417,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
                       {new Date(incident.created_at).toLocaleString()}
                     </p>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full capitalize ${
+                  <span className={`text-xs px-2 py-1 rounded-full capitalize font-medium ${
                     incident.status === 'open' ? 'bg-red-100 text-red-700' :
                     incident.status === 'investigating' ? 'bg-yellow-100 text-yellow-700' :
                     'bg-green-100 text-green-700'
                   }`}>
                     {incident.status}
                   </span>
-                </div>
+                </button>
               ))}
             </div>
           )}
@@ -314,17 +433,27 @@ export const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900">Upcoming Shifts</h2>
-            <Calendar className="h-5 w-5 text-gray-400" />
+            <button
+              onClick={() => onViewChange?.('shifts')}
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+            >
+              View All
+              <ArrowRight className="h-4 w-4" />
+            </button>
           </div>
 
           {upcomingShifts.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No upcoming shifts</p>
+            <div className="text-center py-8">
+              <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+              <p className="text-gray-500">No upcoming shifts</p>
+            </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {upcomingShifts.map((shift) => (
-                <div
+                <button
                   key={shift.id}
-                  className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg"
+                  onClick={() => onViewChange?.('shifts')}
+                  className="w-full flex items-start space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-left"
                 >
                   <div className="bg-blue-100 p-2 rounded-lg">
                     <Shield className="h-4 w-4 text-blue-600" />
@@ -341,27 +470,32 @@ export const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
                       {new Date(shift.end_time).toLocaleTimeString()}
                     </p>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full capitalize ${
+                  <span className={`text-xs px-2 py-1 rounded-full capitalize font-medium ${
                     shift.status === 'scheduled' ? 'bg-blue-100 text-blue-700' :
                     shift.status === 'active' ? 'bg-green-100 text-green-700' :
                     'bg-gray-100 text-gray-700'
                   }`}>
                     {shift.status}
                   </span>
-                </div>
+                </button>
               ))}
             </div>
           )}
         </div>
       </div>
 
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-sm p-8 text-white">
+      <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl shadow-lg p-8 text-white">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-2xl font-bold mb-2">System Status: Online</h3>
-            <p className="text-blue-100">All systems operational</p>
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="h-6 w-6" />
+              <h3 className="text-2xl font-bold">System Status: Online</h3>
+            </div>
+            <p className="text-blue-100">All systems operational • Last checked: {new Date().toLocaleTimeString()}</p>
           </div>
-          <Activity className="h-12 w-12 text-blue-200" />
+          <div className="bg-white/20 backdrop-blur-sm rounded-full p-4">
+            <CheckCircle className="h-8 w-8" />
+          </div>
         </div>
       </div>
     </div>
