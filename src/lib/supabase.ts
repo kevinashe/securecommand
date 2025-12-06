@@ -11,7 +11,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 });
 
-export type UserRole = 'super_admin' | 'company_admin' | 'site_manager' | 'security_officer';
+export type UserRole = 'super_admin' | 'company_admin' | 'site_manager' | 'security_officer' | 'client';
 
 export interface Profile {
   id: string;
@@ -20,6 +20,8 @@ export interface Profile {
   company_id: string | null;
   avatar_url: string | null;
   phone: string | null;
+  staff_code: string | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }

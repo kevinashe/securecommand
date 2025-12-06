@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Shield, Loader } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Loader, Shield } from 'lucide-react';
 
 export const PasswordReset: React.FC = () => {
   const [password, setPassword] = useState('');

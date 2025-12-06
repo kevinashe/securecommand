@@ -935,7 +935,7 @@ export const ShiftsView: React.FC = () => {
 
                           setShowShiftDetailModal(false);
                           setSelectedShift(null);
-                          fetchShifts();
+                          loadShifts();
                         } catch (error) {
                           console.error('Error starting shift:', error);
                           alert('Failed to start shift');
@@ -961,7 +961,7 @@ export const ShiftsView: React.FC = () => {
 
                           setShowShiftDetailModal(false);
                           setSelectedShift(null);
-                          fetchShifts();
+                          loadShifts();
                         } catch (error) {
                           console.error('Error ending shift:', error);
                           alert('Failed to end shift');

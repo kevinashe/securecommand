@@ -219,7 +219,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
       if (profileError) {
-        return { error: profileError as AuthError };
+        return { error: { message: profileError.message } as AuthError };
       }
     }
 
