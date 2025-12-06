@@ -38,6 +38,9 @@ import { PasswordReset } from './components/PasswordReset';
 import { AdvancedScheduling } from './components/AdvancedScheduling';
 import { TimeAttendance } from './components/TimeAttendance';
 import { InvoicingView } from './components/InvoicingView';
+import BusManagementView from './components/BusManagementView';
+import BusCheckInView from './components/BusCheckInView';
+import BusTrackingView from './components/BusTrackingView';
 
 const AppContent: React.FC = () => {
   console.log('[APP] AppContent component rendering');
@@ -114,6 +117,12 @@ const AppContent: React.FC = () => {
         return <TimeAttendance />;
       case 'invoicing':
         return <InvoicingView />;
+      case 'bus-management':
+        return <BusManagementView />;
+      case 'bus-checkin':
+        return <BusCheckInView />;
+      case 'bus-tracking':
+        return <BusTrackingView />;
       default:
         return <Dashboard />;
     }

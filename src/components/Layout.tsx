@@ -5,7 +5,8 @@ import {
   Shield, LogOut, Menu, X, LayoutDashboard, MapPin, Users,
   Calendar, AlertTriangle, Package, MessageSquare, CreditCard,
   Building, Bell, Radio, Wallet, Settings, BarChart3, History,
-  FileText, User, DollarSign, UserPlus, Globe, Wand2, Clock as ClockIcon
+  FileText, User, DollarSign, UserPlus, Globe, Wand2, Clock as ClockIcon,
+  Bus
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -53,6 +54,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
         { id: 'time-attendance', icon: ClockIcon, label: 'Time & Attendance' },
         { id: 'patrol', icon: MapPin, label: 'Patrol Routes' },
         { id: 'tracking', icon: Radio, label: 'GPS Tracking' },
+        { id: 'bus-management', icon: Bus, label: 'Bus Management' },
+        { id: 'bus-tracking', icon: Bus, label: 'Bus Tracking' },
         { id: 'incidents', icon: AlertTriangle, label: 'Incidents' },
         { id: 'sos-alerts', icon: Bell, label: 'SOS Alerts' },
         { id: 'invoicing', icon: FileText, label: 'Invoicing' },
@@ -94,6 +97,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
       { id: 'shifts', icon: Calendar, label: 'My Shifts' },
       { id: 'patrol', icon: MapPin, label: 'Patrol' },
       { id: 'checkin', icon: Radio, label: 'Check In' },
+      { id: 'bus-checkin', icon: Bus, label: 'Bus Check-In' },
       { id: 'incidents', icon: AlertTriangle, label: 'Incidents' },
       { id: 'sos', icon: Bell, label: 'SOS' },
       { id: 'messages', icon: MessageSquare, label: 'Messages' },
