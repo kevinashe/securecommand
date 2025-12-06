@@ -8,6 +8,7 @@ import {
   CheckCircle,
   XCircle,
   Clock,
+  ArrowLeft,
   AlertCircle,
   Plus,
   X,
@@ -59,7 +60,11 @@ interface PaymentTransaction {
   company_name?: string;
 }
 
-export const PaymentsView: React.FC = () => {
+interface PaymentsViewProps {
+  onBack?: () => void;
+}
+
+export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack }) => {
   const { profile } = useAuth();
   const [gateways, setGateways] = useState<PaymentGateway[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);

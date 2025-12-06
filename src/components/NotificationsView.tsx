@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Bell, Check, CheckCheck, Trash2, AlertTriangle, Info, AlertCircle, Loader } from 'lucide-react';
+import { Bell, Check, CheckCheck, Trash2, AlertTriangle, Info, AlertCircle, Loader, ArrowLeft } from 'lucide-react';
 
 interface Notification {
   id: string;
@@ -16,7 +16,11 @@ interface Notification {
   created_at: string;
 }
 
-export const NotificationsView: React.FC = () => {
+interface NotificationsViewProps {
+  onBack?: () => void;
+}
+
+export const NotificationsView: React.FC<NotificationsViewProps> = ({ onBack }) => {
   const { profile } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);

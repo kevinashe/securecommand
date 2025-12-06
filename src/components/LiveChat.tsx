@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Send, Users, User, X, MessageCircle } from 'lucide-react';
+import { Send, Users, User, X, MessageCircle, ArrowLeft } from 'lucide-react';
 
 interface ChatMessage {
   id: string;
@@ -24,7 +24,11 @@ interface ChatUser {
   is_active: boolean;
 }
 
-export const LiveChat: React.FC = () => {
+interface LiveChatProps {
+  onBack?: () => void;
+}
+
+export const LiveChat: React.FC<LiveChatProps> = ({ onBack }) => {
   const { profile } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [users, setUsers] = useState<ChatUser[]>([]);
@@ -224,9 +228,20 @@ export const LiveChat: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Live Chat</h1>
-        <p className="text-gray-600 mt-2">Communicate with your team in real-time</p>
+      <div className="flex items-center gap-4">
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            title="Go back"
+          >
+            <ArrowLeft className="h-6 w-6 text-gray-600" />
+          </button>
+        )}
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Live Chat</h1>
+          <p className="text-gray-600 mt-2">Communicate with your team in real-time</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

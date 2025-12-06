@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Company } from '../lib/supabase';
-import { Building, Upload, Save, CreditCard, Plus, X, Wallet, Crown, Check, User, Lock, Phone, Mail } from 'lucide-react';
+import { Building, Upload, Save, CreditCard, Plus, X, Wallet, Crown, Check, User, Lock, Phone, Mail, ArrowLeft } from 'lucide-react';
 
 interface PaymentGateway {
   id: string;
@@ -38,7 +38,11 @@ interface PricingPlan {
   is_featured: boolean;
 }
 
-export const CompanySettings: React.FC = () => {
+interface CompanySettingsProps {
+  onBack?: () => void;
+}
+
+export const CompanySettings: React.FC<CompanySettingsProps> = ({ onBack }) => {
   const { profile, refreshProfile } = useAuth();
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);

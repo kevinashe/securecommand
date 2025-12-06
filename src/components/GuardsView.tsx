@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Users, Plus, Edit, Trash2, X, Shield, Mail, Phone, MapPin, History, Building2 } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, X, Shield, Mail, Phone, MapPin, History, Building2, ArrowLeft } from 'lucide-react';
 
 interface Guard {
   id: string;
@@ -30,7 +30,11 @@ interface Site {
   name: string;
 }
 
-export const GuardsView: React.FC = () => {
+interface GuardsViewProps {
+  onBack?: () => void;
+}
+
+export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
   const { profile } = useAuth();
   const [guards, setGuards] = useState<Guard[]>([]);
   const [sites, setSites] = useState<Site[]>([]);
@@ -266,15 +270,26 @@ export const GuardsView: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {profile?.role === 'super_admin' ? 'User Management' : 'Security Guards'}
-          </h1>
-          <p className="text-gray-600 mt-1">
-            {profile?.role === 'super_admin'
-              ? 'Manage all users including admins'
-              : 'Manage security officers and site managers'}
+        <div className="flex items-center gap-4">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Go back"
+            >
+              <ArrowLeft className="h-6 w-6 text-gray-600" />
+            </button>
+          )}
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {profile?.role === 'super_admin' ? 'User Management' : 'Security Guards'}
+            </h1>
+            <p className="text-gray-600 mt-1">
+              {profile?.role === 'super_admin'
+                ? 'Manage all users including admins'
+                : 'Manage security officers and site managers'}
           </p>
+        </div>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}

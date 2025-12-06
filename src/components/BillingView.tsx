@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { DollarSign, FileText, Plus, X, Send, AlertCircle, CheckCircle, Clock, Settings } from 'lucide-react';
+import { DollarSign, FileText, Plus, X, Send, AlertCircle, CheckCircle, Clock, Settings, ArrowLeft } from 'lucide-react';
 
 interface CompanyBilling {
   id: string;
@@ -30,7 +30,11 @@ interface Invoice {
   created_at: string;
 }
 
-export const BillingView: React.FC = () => {
+interface BillingViewProps {
+  onBack?: () => void;
+}
+
+export const BillingView: React.FC<BillingViewProps> = ({ onBack }) => {
   const { profile } = useAuth();
   const [companies, setCompanies] = useState<CompanyBilling[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -294,9 +298,20 @@ export const BillingView: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Billing Management</h1>
-          <p className="text-gray-600 mt-1">Manage subscriptions, invoices, and payments</p>
+        <div className="flex items-center gap-4">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Go back"
+            >
+              <ArrowLeft className="h-6 w-6 text-gray-600" />
+            </button>
+          )}
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Billing Management</h1>
+            <p className="text-gray-600 mt-1">Manage subscriptions, invoices, and payments</p>
+          </div>
         </div>
         <button
           onClick={() => setShowSettingsModal(true)}

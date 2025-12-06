@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { MapPin, User, Battery, Clock, Activity, Navigation } from 'lucide-react';
+import { MapPin, User, Battery, Clock, Activity, Navigation, ArrowLeft } from 'lucide-react';
 
 interface LocationData {
   id: string;
@@ -20,7 +20,11 @@ interface LocationData {
   };
 }
 
-export const LiveTrackingMap: React.FC = () => {
+interface LiveTrackingMapProps {
+  onBack?: () => void;
+}
+
+export const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ onBack }) => {
   const { profile } = useAuth();
   const [locations, setLocations] = useState<LocationData[]>([]);
   const [selectedUser, setSelectedUser] = useState<LocationData | null>(null);

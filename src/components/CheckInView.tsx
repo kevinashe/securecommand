@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { QrCode, CheckCircle, MapPin, Clock, Camera, X } from 'lucide-react';
+import { QrCode, CheckCircle, MapPin, Clock, Camera, X, ArrowLeft } from 'lucide-react';
 import jsQR from 'jsqr';
 
 interface Checkpoint {
@@ -24,7 +24,11 @@ interface CheckIn {
   description?: string;
 }
 
-export const CheckInView: React.FC = () => {
+interface CheckInViewProps {
+  onBack?: () => void;
+}
+
+export const CheckInView: React.FC<CheckInViewProps> = ({ onBack }) => {
   const { profile } = useAuth();
   const [qrInput, setQrInput] = useState('');
   const [checkpoints, setCheckpoints] = useState<Checkpoint[]>([]);
@@ -390,9 +394,20 @@ export const CheckInView: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Time Attendance Check-In</h1>
-        <p className="text-gray-600 mt-1">Take a selfie and scan checkpoint QR codes</p>
+      <div className="flex items-center gap-4">
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            title="Go back"
+          >
+            <ArrowLeft className="h-6 w-6 text-gray-600" />
+          </button>
+        )}
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Time Attendance Check-In</h1>
+          <p className="text-gray-600 mt-1">Take a selfie and scan checkpoint QR codes</p>
+        </div>
         {!window.isSecureContext && (
           <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
             <p className="text-sm text-yellow-800">

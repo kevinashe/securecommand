@@ -4,8 +4,12 @@ import { supabase } from '../lib/supabase';
 import { Send, MessageSquare } from 'lucide-react';
 import { LiveChat } from './LiveChat';
 
-export const MessagesView: React.FC = () => {
-  return <LiveChat />;
+interface MessagesViewProps {
+  onBack?: () => void;
+}
+
+export const MessagesView: React.FC<MessagesViewProps> = ({ onBack }) => {
+  return <LiveChat onBack={onBack} />;
 };
 
 export const MessagesViewLegacy: React.FC = () => {

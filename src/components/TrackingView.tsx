@@ -1,6 +1,10 @@
 import React from 'react';
 import { LiveTrackingMap } from './LiveTrackingMap';
 
-export const TrackingView: React.FC = () => {
-  return <LiveTrackingMap />;
+interface TrackingViewProps {
+  onBack?: () => void;
+}
+
+export const TrackingView: React.FC<TrackingViewProps> = ({ onBack }) => {
+  return <LiveTrackingMap onBack={onBack} />;
 };

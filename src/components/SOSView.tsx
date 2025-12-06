@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, SOSAlert } from '../lib/supabase';
-import { Bell, AlertCircle, CheckCircle, MapPin, Clock, User } from 'lucide-react';
+import { Bell, AlertCircle, CheckCircle, MapPin, Clock, User, ArrowLeft } from 'lucide-react';
 
-export const SOSView: React.FC = () => {
+interface SOSViewProps {
+  onBack?: () => void;
+}
+
+export const SOSView: React.FC<SOSViewProps> = ({ onBack }) => {
   const { profile } = useAuth();
   const [alerts, setAlerts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -183,9 +187,20 @@ export const SOSView: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">SOS Alerts</h1>
-          <p className="text-gray-600 mt-1">Emergency alert management system</p>
+        <div className="flex items-center gap-4">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Go back"
+            >
+              <ArrowLeft className="h-6 w-6 text-gray-600" />
+            </button>
+          )}
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">SOS Alerts</h1>
+            <p className="text-gray-600 mt-1">Emergency alert management system</p>
+          </div>
         </div>
       </div>
 

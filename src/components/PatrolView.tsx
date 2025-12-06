@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { MapPin, Plus, Edit, Trash2, X, QrCode, Clock, Download } from 'lucide-react';
+import { MapPin, Plus, Edit, Trash2, X, QrCode, Clock, Download, ArrowLeft } from 'lucide-react';
 
 interface PatrolRoute {
   id: string;
@@ -34,7 +34,11 @@ interface CheckpointDraft {
   order_index: number;
 }
 
-export const PatrolView: React.FC = () => {
+interface PatrolViewProps {
+  onBack?: () => void;
+}
+
+export const PatrolView: React.FC<PatrolViewProps> = ({ onBack }) => {
   const { profile } = useAuth();
   const [routes, setRoutes] = useState<PatrolRoute[]>([]);
   const [sites, setSites] = useState<Site[]>([]);
@@ -638,9 +642,20 @@ export const PatrolView: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Patrol Routes</h1>
-          <p className="text-gray-600 mt-1">Manage patrol routes and checkpoints</p>
+        <div className="flex items-center gap-4">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Go back"
+            >
+              <ArrowLeft className="h-6 w-6 text-gray-600" />
+            </button>
+          )}
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Patrol Routes</h1>
+            <p className="text-gray-600 mt-1">Manage patrol routes and checkpoints</p>
+          </div>
         </div>
         <button
           onClick={() => setShowRouteModal(true)}

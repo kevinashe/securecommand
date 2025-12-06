@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Package, Plus, Edit, Trash2, X, Radio } from 'lucide-react';
+import { Package, Plus, Edit, Trash2, X, Radio, ArrowLeft } from 'lucide-react';
 
 interface Equipment {
   id: string;
@@ -27,7 +27,11 @@ interface Site {
   name: string;
 }
 
-export const EquipmentView: React.FC = () => {
+interface EquipmentViewProps {
+  onBack?: () => void;
+}
+
+export const EquipmentView: React.FC<EquipmentViewProps> = ({ onBack }) => {
   const { profile } = useAuth();
   const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [guards, setGuards] = useState<Guard[]>([]);
@@ -244,9 +248,20 @@ export const EquipmentView: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Equipment</h1>
-          <p className="text-gray-600 mt-1">Track and manage security equipment</p>
+        <div className="flex items-center gap-4">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Go back"
+            >
+              <ArrowLeft className="h-6 w-6 text-gray-600" />
+            </button>
+          )}
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Equipment</h1>
+            <p className="text-gray-600 mt-1">Track and manage security equipment</p>
+          </div>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}

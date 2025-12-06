@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { MapPin, Plus, Edit, Trash2, X, QrCode, Download, Printer, Calendar, ChevronLeft, ChevronRight, Users, Shield } from 'lucide-react';
+import { MapPin, Plus, Edit, Trash2, X, QrCode, Download, Printer, Calendar, ChevronLeft, ChevronRight, Users, Shield, ArrowLeft } from 'lucide-react';
 
 interface Site {
   id: string;
@@ -29,7 +29,11 @@ interface Shift {
   };
 }
 
-export const SitesView: React.FC = () => {
+interface SitesViewProps {
+  onBack?: () => void;
+}
+
+export const SitesView: React.FC<SitesViewProps> = ({ onBack }) => {
   const { profile } = useAuth();
   const [sites, setSites] = useState<Site[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -380,9 +384,20 @@ export const SitesView: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Sites Management</h1>
-          <p className="text-gray-600 mt-1">Manage security locations and schedules</p>
+        <div className="flex items-center gap-4">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Go back"
+            >
+              <ArrowLeft className="h-6 w-6 text-gray-600" />
+            </button>
+          )}
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Sites Management</h1>
+            <p className="text-gray-600 mt-1">Manage security locations and schedules</p>
+          </div>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}

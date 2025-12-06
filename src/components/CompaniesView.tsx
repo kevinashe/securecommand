@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Company } from '../lib/supabase';
-import { Building, Plus, X, Mail, Phone, MapPin, Edit2, Trash2, Key, Copy, Check, Upload, Image } from 'lucide-react';
+import { Building, Plus, X, Mail, Phone, MapPin, Edit2, Trash2, Key, Copy, Check, Upload, Image, ArrowLeft } from 'lucide-react';
 
-export const CompaniesView: React.FC = () => {
+interface CompaniesViewProps {
+  onBack?: () => void;
+}
+
+export const CompaniesView: React.FC<CompaniesViewProps> = ({ onBack }) => {
   const { profile } = useAuth();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
@@ -254,9 +258,20 @@ export const CompaniesView: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Companies</h1>
-          <p className="text-gray-600 mt-1">Manage client companies and organizations</p>
+        <div className="flex items-center gap-4">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Go back"
+            >
+              <ArrowLeft className="h-6 w-6 text-gray-600" />
+            </button>
+          )}
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Companies</h1>
+            <p className="text-gray-600 mt-1">Manage client companies and organizations</p>
+          </div>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
