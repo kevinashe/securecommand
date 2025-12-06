@@ -13,6 +13,7 @@ interface OfflineContextType {
 const OfflineContext = createContext<OfflineContextType | undefined>(undefined);
 
 export const OfflineProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  console.log('OfflineProvider rendering');
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [queuedActionsCount, setQueuedActionsCount] = useState(0);
   const { profile } = useAuth();
@@ -32,7 +33,9 @@ export const OfflineProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   useEffect(() => {
     if (profile) {
-      initOfflineStorage();
+      initOfflineStorage().catch(err => {
+        console.warn('Offline storage initialization failed, continuing without offline support:', err);
+      });
       syncManager.startAutoSync();
     }
 
@@ -51,7 +54,9 @@ export const OfflineProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       await offlineStorage.init();
       if (profile && isOnline) {
-        await syncManager.cacheEssentialData(profile.id, profile.company_id);
+        await syncManager.cacheEssentialData(profile.id, profile.company_id).catch(err => {
+          console.warn('Failed to cache essential data:', err);
+        });
       }
     } catch (error) {
       console.error('Error initializing offline storage:', error);
@@ -64,15 +69,20 @@ export const OfflineProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setQueuedActionsCount(actions.length);
     } catch (error) {
       console.error('Error getting queued actions count:', error);
+      setQueuedActionsCount(0);
     }
   };
 
   const queueAction = async (type: string, data: any) => {
-    await offlineStorage.queueAction({ type: type as any, data });
-    await updateQueuedActionsCount();
+    try {
+      await offlineStorage.queueAction({ type: type as any, data });
+      await updateQueuedActionsCount();
 
-    if (isOnline) {
-      syncManager.syncQueuedActions();
+      if (isOnline) {
+        syncManager.syncQueuedActions();
+      }
+    } catch (error) {
+      console.error('Error queuing action:', error);
     }
   };
 
