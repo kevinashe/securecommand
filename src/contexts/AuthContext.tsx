@@ -24,14 +24,12 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  console.log('AuthProvider rendering');
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [companyLogo, setCompanyLogo] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string, companyCode?: string) => {
-    console.log('[FETCH_PROFILE] Starting for userId:', userId, 'companyCode:', companyCode);
     let query = supabase
       .from('profiles')
       .select('id, full_name, role, company_id, avatar_url, phone, staff_code, is_active, created_at, updated_at')
@@ -39,19 +37,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // If company code provided, filter by it during login
     if (companyCode) {
-      console.log('[FETCH_PROFILE] Filtering by company code:', companyCode);
-      const { data: companies, error: companyError } = await supabase
+      const { data: companies } = await supabase
         .from('companies')
         .select('id')
         .eq('company_code', companyCode)
         .maybeSingle();
 
-      if (companyError) {
-        console.error('[FETCH_PROFILE] Error fetching company:', companyError);
-      }
-
       if (!companies) {
-        console.warn('[FETCH_PROFILE] No company found for code:', companyCode);
         return;
       }
 
@@ -60,41 +52,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const { data, error } = await query.maybeSingle();
 
-    if (error) {
-      console.error('[FETCH_PROFILE] Error fetching profile:', error);
-      return;
-    }
+    if (!error && data) {
+      setProfile(data);
 
-    if (!data) {
-      console.warn('[FETCH_PROFILE] No profile data found');
-      return;
-    }
+      if (data.company_id) {
+        const { data: companyData } = await supabase
+          .from('companies')
+          .select('logo_url')
+          .eq('id', data.company_id)
+          .maybeSingle();
 
-    console.log('[FETCH_PROFILE] Profile data fetched:', { role: data.role, company_id: data.company_id });
-    setProfile(data);
-
-    if (data.company_id) {
-      console.log('[FETCH_PROFILE] Fetching company logo...');
-      const { data: companyData, error: logoError } = await supabase
-        .from('companies')
-        .select('logo_url')
-        .eq('id', data.company_id)
-        .maybeSingle();
-
-      if (logoError) {
-        console.error('[FETCH_PROFILE] Error fetching logo:', logoError);
-      }
-
-      if (companyData?.logo_url) {
-        console.log('[FETCH_PROFILE] Logo found');
-        setCompanyLogo(companyData.logo_url);
+        if (companyData?.logo_url) {
+          setCompanyLogo(companyData.logo_url);
+        } else {
+          setCompanyLogo(null);
+        }
       } else {
-        console.log('[FETCH_PROFILE] No logo found');
         setCompanyLogo(null);
       }
-    } else {
-      console.log('[FETCH_PROFILE] No company_id, skipping logo fetch');
-      setCompanyLogo(null);
     }
   };
 
@@ -129,7 +104,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signIn = async (email: string, password: string, companyCode?: string) => {
-    console.log('[AUTH] Starting sign-in for:', email);
     // Sign in with email and password
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
@@ -137,11 +111,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     if (authError) {
-      console.error('[AUTH] Sign-in failed:', authError);
       return { error: authError };
     }
-
-    console.log('[AUTH] Authentication successful, checking profile...');
 
     if (authData.user) {
       // First, get the user's profile to check their role
@@ -151,43 +122,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('id', authData.user.id)
         .maybeSingle();
 
-      console.log('Profile check during sign-in:', {
-        userProfile,
-        profileError: profileError ? {
-          message: profileError.message,
-          details: profileError.details,
-          hint: profileError.hint,
-          code: profileError.code
-        } : null
-      });
-
       // If no profile found, sign out and return error
       if (!userProfile) {
-        console.error('[AUTH] No profile found for user');
         await supabase.auth.signOut();
         return { error: { message: 'No profile found. Please complete your registration.' } as AuthError };
       }
 
-      console.log('[AUTH] Profile found:', { role: userProfile.role, hasCompanyId: !!userProfile.company_id });
-
       // If user already has a company_id, they don't need to enter company code again
       if (userProfile.company_id) {
-        console.log('[AUTH] User has company, fetching company data...');
         // Get the company code for this user's company
-        const { data: companyData, error: companyError } = await supabase
+        const { data: companyData } = await supabase
           .from('companies')
           .select('company_code')
           .eq('id', userProfile.company_id)
           .maybeSingle();
 
-        if (companyError) {
-          console.error('[AUTH] Error fetching company:', companyError);
-        } else {
-          console.log('[AUTH] Company data fetched, loading full profile...');
-        }
-
         await fetchProfile(authData.user.id, companyData?.company_code);
-        console.log('[AUTH] Sign-in complete!');
         return { error: null };
       }
 
