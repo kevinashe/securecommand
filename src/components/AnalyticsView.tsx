@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { BarChart3, TrendingUp, Users, AlertTriangle, Clock, MapPin, Loader, DollarSign, Award, Target } from 'lucide-react';
+import { BarChart3, TrendingUp, Users, AlertTriangle, Clock, MapPin, Loader, DollarSign, Award, Target, ArrowLeft } from 'lucide-react';
 
 interface Stats {
   totalGuards: number;
@@ -40,7 +40,11 @@ interface ChartData {
   responseTimeData: { day: string; avgMinutes: number }[];
 }
 
-export const AnalyticsView: React.FC = () => {
+interface AnalyticsViewProps {
+  onBack?: () => void;
+}
+
+export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ onBack }) => {
   const { profile } = useAuth();
   const [stats, setStats] = useState<Stats>({
     totalGuards: 0,
@@ -408,9 +412,20 @@ export const AnalyticsView: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Analytics & Reports</h1>
-          <p className="text-gray-600 mt-1">Insights and performance metrics</p>
+        <div className="flex items-center gap-4">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Go back"
+            >
+              <ArrowLeft className="h-6 w-6 text-gray-600" />
+            </button>
+          )}
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Analytics & Reports</h1>
+            <p className="text-gray-600 mt-1">Insights and performance metrics</p>
+          </div>
         </div>
         <select
           value={dateRange}

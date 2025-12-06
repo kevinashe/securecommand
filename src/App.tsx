@@ -67,7 +67,7 @@ const AppContent: React.FC = () => {
       case 'dashboard':
         return <Dashboard onViewChange={setCurrentView} />;
       case 'shifts':
-        return <ShiftsView />;
+        return <ShiftsView onBack={() => setCurrentView('dashboard')} />;
       case 'incidents':
         return <IncidentsView onBack={() => setCurrentView('dashboard')} />;
       case 'sos-alerts':
@@ -98,7 +98,7 @@ const AppContent: React.FC = () => {
       case 'notifications':
         return <NotificationsView />;
       case 'analytics':
-        return <AnalyticsView />;
+        return <AnalyticsView onBack={() => setCurrentView('dashboard')} />;
       case 'history':
         return <AssignmentHistoryView />;
       case 'pricing-plans':
