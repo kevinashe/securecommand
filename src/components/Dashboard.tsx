@@ -274,27 +274,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {statCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <button
-              key={card.label}
-              onClick={() => onViewChange?.(card.action)}
-              className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-200 p-6 border border-gray-100 text-left group"
-            >
-              <div className={`${card.bgColor} p-3 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform`}>
-                <Icon className={`h-7 w-7 ${card.iconColor}`} />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-2">{card.label}</p>
-                <p className="text-4xl font-bold text-gray-900">{card.value}</p>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
       {quickActions.length > 0 && (
         <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
@@ -315,6 +294,27 @@ export const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
           </div>
         </div>
       )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {statCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <button
+              key={card.label}
+              onClick={() => onViewChange?.(card.action)}
+              className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-200 p-6 border border-gray-100 text-left group"
+            >
+              <div className={`${card.bgColor} p-3 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform`}>
+                <Icon className={`h-7 w-7 ${card.iconColor}`} />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600 mb-2">{card.label}</p>
+                <p className="text-4xl font-bold text-gray-900">{card.value}</p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
