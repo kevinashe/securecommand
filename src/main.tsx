@@ -3,20 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
-console.log('Main.tsx loaded');
-
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(
-      (registration) => {
-        console.log('ServiceWorker registration successful');
-      },
-      (error) => {
-        console.log('ServiceWorker registration failed:', error);
-      }
-    );
-  });
-}
+console.log('Main.tsx loaded - timestamp:', new Date().toISOString());
 
 try {
   console.log('Attempting to render app...');
