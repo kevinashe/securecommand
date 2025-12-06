@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Calendar, Plus, Wand2, Users, Clock, MapPin, CheckCircle, X, AlertCircle } from 'lucide-react';
+import { Calendar, Plus, Wand2, Users, Clock, MapPin, CheckCircle, X, AlertCircle, ArrowLeft } from 'lucide-react';
 
 interface Guard {
   id: string;
@@ -29,7 +29,11 @@ interface ShiftTemplate {
   is_active: boolean;
 }
 
-export const AdvancedScheduling: React.FC = () => {
+interface AdvancedSchedulingProps {
+  onBack?: () => void;
+}
+
+export const AdvancedScheduling: React.FC<AdvancedSchedulingProps> = ({ onBack }) => {
   const { profile } = useAuth();
   const [guards, setGuards] = useState<Guard[]>([]);
   const [sites, setSites] = useState<Site[]>([]);
@@ -277,9 +281,20 @@ export const AdvancedScheduling: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Advanced Scheduling</h2>
-          <p className="text-gray-600">Smart shift assignment and templates</p>
+        <div className="flex items-center gap-4">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Go back"
+            >
+              <ArrowLeft className="h-6 w-6 text-gray-600" />
+            </button>
+          )}
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Advanced Scheduling</h2>
+            <p className="text-gray-600">Smart shift assignment and templates</p>
+          </div>
         </div>
         <div className="flex gap-3">
           <button

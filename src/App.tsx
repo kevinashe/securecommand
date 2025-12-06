@@ -112,7 +112,7 @@ const AppContent: React.FC = () => {
       case 'client-portal':
         return <ClientPortalView />;
       case 'advanced-scheduling':
-        return <AdvancedScheduling />;
+        return <AdvancedScheduling onBack={() => setCurrentView('dashboard')} />;
       case 'time-attendance':
         return <TimeAttendance />;
       case 'invoicing':
