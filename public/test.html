@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Page</title>
+</head>
+<body>
+    <h1 id="status">JavaScript Test Page</h1>
+    <div id="output"></div>
+    <script>
+        console.log('===== TEST PAGE LOADED =====');
+        console.log('Timestamp:', new Date().toISOString());
+        document.getElementById('status').textContent = 'JavaScript is working!';
+        document.getElementById('status').style.color = 'green';
+        document.getElementById('output').innerHTML = '<p>If you can see this, JavaScript is running.</p>';
+        alert('JavaScript is executing!');
+    </script>
+</body>
+</html>
