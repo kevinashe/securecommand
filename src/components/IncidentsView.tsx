@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Incident } from '../lib/supabase';
-import { AlertTriangle, Plus, MapPin, Clock, User, X, Camera } from 'lucide-react';
+import { AlertTriangle, Plus, MapPin, Clock, User, X, Camera, ArrowLeft } from 'lucide-react';
 
-export const IncidentsView: React.FC = () => {
+interface IncidentsViewProps {
+  onBack?: () => void;
+}
+
+export const IncidentsView: React.FC<IncidentsViewProps> = ({ onBack }) => {
   const { profile } = useAuth();
   const [incidents, setIncidents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -217,9 +221,20 @@ export const IncidentsView: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Incidents</h1>
-          <p className="text-gray-600 mt-1">Track and manage security incidents</p>
+        <div className="flex items-center gap-4">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Go back"
+            >
+              <ArrowLeft className="h-6 w-6 text-gray-600" />
+            </button>
+          )}
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Incidents</h1>
+            <p className="text-gray-600 mt-1">Track and manage security incidents</p>
+          </div>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
