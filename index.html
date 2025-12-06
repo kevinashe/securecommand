@@ -89,26 +89,38 @@
   <body>
     <div id="root"></div>
     <script>
+      console.log('[INIT] HTML loaded, clearing service workers and cache...');
+      console.log('[INIT] Timestamp:', new Date().toISOString());
+
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          console.log('[INIT] Found', registrations.length, 'service worker(s)');
           for(let registration of registrations) {
             registration.unregister();
-            console.log('Service worker unregistered');
+            console.log('[INIT] Service worker unregistered:', registration.scope);
           }
         });
+      } else {
+        console.log('[INIT] Service workers not supported');
       }
 
       if ('caches' in window) {
         caches.keys().then(function(names) {
+          console.log('[INIT] Found', names.length, 'cache(s)');
           for (let name of names) {
             caches.delete(name);
-            console.log('Cache deleted:', name);
+            console.log('[INIT] Cache deleted:', name);
           }
         });
+      } else {
+        console.log('[INIT] Cache API not supported');
       }
 
-      console.log('Cache clearing initiated');
+      console.log('[INIT] About to load main.tsx module...');
     </script>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="/src/main.tsx" onerror="console.error('[INIT] Failed to load main.tsx module!')"></script>
+    <script>
+      console.log('[INIT] Script tags processed');
+    </script>
   </body>
 </html>

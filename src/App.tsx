@@ -1,3 +1,5 @@
+console.log('[APP] App.tsx module loading...');
+
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { OfflineProvider } from './contexts/OfflineContext';
@@ -38,6 +40,7 @@ import { TimeAttendance } from './components/TimeAttendance';
 import { InvoicingView } from './components/InvoicingView';
 
 const AppContent: React.FC = () => {
+  console.log('[APP] AppContent component rendering');
   const { user, profile, loading } = useAuth();
   const [currentView, setCurrentView] = useState('dashboard');
 

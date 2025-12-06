@@ -10,7 +10,7 @@ VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       devOptions: {
-        enabled: true,
+        enabled: false,
       },
       manifest: {
         name: 'SecureCommand - Security Management System',
