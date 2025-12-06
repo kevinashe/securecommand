@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Clock, MapPin, Camera, Coffee, LogOut as LogOutIcon, CheckCircle, AlertCircle, X } from 'lucide-react';
+import { Clock, MapPin, Camera, Coffee, LogOut as LogOutIcon, CheckCircle, AlertCircle, X, ArrowLeft } from 'lucide-react';
 
 interface TimeClockEntry {
   id: string;
@@ -21,7 +21,11 @@ interface TimeClockEntry {
   };
 }
 
-export const TimeAttendance: React.FC = () => {
+interface TimeAttendanceProps {
+  onBack: () => void;
+}
+
+export const TimeAttendance: React.FC<TimeAttendanceProps> = ({ onBack }) => {
   const { profile } = useAuth();
   const [currentEntry, setCurrentEntry] = useState<TimeClockEntry | null>(null);
   const [recentEntries, setRecentEntries] = useState<TimeClockEntry[]>([]);
@@ -296,6 +300,14 @@ export const TimeAttendance: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <button
+        onClick={onBack}
+        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+      >
+        <ArrowLeft className="h-5 w-5" />
+        <span>Back to Dashboard</span>
+      </button>
+
       <div>
         <h2 className="text-2xl font-bold text-gray-900">Time & Attendance</h2>
         <p className="text-gray-600">Clock in/out with geofence verification</p>

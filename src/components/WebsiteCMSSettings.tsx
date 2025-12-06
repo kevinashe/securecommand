@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { FileText, Save, Loader, Globe, AlertCircle } from 'lucide-react';
+import { FileText, Save, Loader, Globe, AlertCircle, ArrowLeft } from 'lucide-react';
 
 interface WebsiteContent {
   id: string;
@@ -11,7 +11,11 @@ interface WebsiteContent {
   type: string;
 }
 
-export const WebsiteCMSSettings: React.FC = () => {
+interface WebsiteCMSSettingsProps {
+  onBack: () => void;
+}
+
+export const WebsiteCMSSettings: React.FC<WebsiteCMSSettingsProps> = ({ onBack }) => {
   const { profile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -124,6 +128,14 @@ export const WebsiteCMSSettings: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-6xl">
+      <button
+        onClick={onBack}
+        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+      >
+        <ArrowLeft className="h-5 w-5" />
+        <span>Back to Dashboard</span>
+      </button>
+
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Website Content Management</h1>
         <p className="text-gray-600 mt-1">Edit your landing page content, features, and marketing copy</p>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { DollarSign, Plus, Edit, Trash2, Check, X, Loader, Star, Users, MapPin, Shield } from 'lucide-react';
+import { DollarSign, Plus, Edit, Trash2, Check, X, Loader, Star, Users, MapPin, Shield, ArrowLeft } from 'lucide-react';
 
 interface PricingPlan {
   id: string;
@@ -25,7 +25,11 @@ interface PricingPlan {
   updated_at: string;
 }
 
-export const PricingPlansView: React.FC = () => {
+interface PricingPlansViewProps {
+  onBack: () => void;
+}
+
+export const PricingPlansView: React.FC<PricingPlansViewProps> = ({ onBack }) => {
   const { profile } = useAuth();
   const [plans, setPlans] = useState<PricingPlan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -260,6 +264,14 @@ export const PricingPlansView: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <button
+        onClick={onBack}
+        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+      >
+        <ArrowLeft className="h-5 w-5" />
+        <span>Back to Dashboard</span>
+      </button>
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Pricing Plans</h1>

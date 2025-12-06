@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bus, Plus, Edit2, Trash2, QrCode, X, MapPin } from 'lucide-react';
+import { Bus, Plus, Edit2, Trash2, QrCode, X, MapPin, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -17,7 +17,11 @@ interface CompanyBus {
   updated_at: string;
 }
 
-export default function BusManagementView() {
+interface BusManagementViewProps {
+  onBack: () => void;
+}
+
+export default function BusManagementView({ onBack }: BusManagementViewProps) {
   const { profile } = useAuth();
   const [buses, setBuses] = useState<CompanyBus[]>([]);
   const [loading, setLoading] = useState(true);
@@ -199,6 +203,14 @@ export default function BusManagementView() {
 
   return (
     <div className="space-y-6">
+      <button
+        onClick={onBack}
+        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+      >
+        <ArrowLeft className="h-5 w-5" />
+        <span>Back to Dashboard</span>
+      </button>
+
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Bus Management</h2>

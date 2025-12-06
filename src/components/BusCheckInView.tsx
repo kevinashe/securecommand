@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bus, Camera, CheckCircle, Clock, LogOut, MapPin } from 'lucide-react';
+import { Bus, Camera, CheckCircle, Clock, LogOut, MapPin, ArrowLeft } from 'lucide-react';
 import jsQR from 'jsqr';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -20,7 +20,11 @@ interface CheckIn {
   company_buses: CompanyBus;
 }
 
-export default function BusCheckInView() {
+interface BusCheckInViewProps {
+  onBack: () => void;
+}
+
+export default function BusCheckInView({ onBack }: BusCheckInViewProps) {
   const { profile } = useAuth();
   const [scanning, setScanning] = useState(false);
   const [manualCode, setManualCode] = useState('');
@@ -265,6 +269,14 @@ export default function BusCheckInView() {
 
   return (
     <div className="space-y-6">
+      <button
+        onClick={onBack}
+        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+      >
+        <ArrowLeft className="h-5 w-5" />
+        <span>Back to Dashboard</span>
+      </button>
+
       <div>
         <h2 className="text-2xl font-bold text-gray-900">Bus Check-In</h2>
         <p className="text-gray-600 mt-1">Scan QR code or enter bus code to check in</p>

@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Settings, Save, Loader, Image, Type, Palette } from 'lucide-react';
+import { Settings, Save, Loader, Image, Type, Palette, ArrowLeft } from 'lucide-react';
 
-export const SystemSettings: React.FC = () => {
+interface SystemSettingsProps {
+  onBack: () => void;
+}
+
+export const SystemSettings: React.FC<SystemSettingsProps> = ({ onBack }) => {
   const { profile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -105,6 +109,14 @@ export const SystemSettings: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-4xl">
+      <button
+        onClick={onBack}
+        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+      >
+        <ArrowLeft className="h-5 w-5" />
+        <span>Back to Dashboard</span>
+      </button>
+
       <div>
         <h1 className="text-3xl font-bold text-gray-900">System Settings</h1>
         <p className="text-gray-600 mt-1">Customize your application branding and appearance</p>

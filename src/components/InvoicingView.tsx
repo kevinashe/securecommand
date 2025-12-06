@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { FileText, Plus, DollarSign, Calendar, CheckCircle, Clock, Send, X, Download } from 'lucide-react';
+import { FileText, Plus, DollarSign, Calendar, CheckCircle, Clock, Send, X, Download, ArrowLeft } from 'lucide-react';
 
 interface Invoice {
   id: string;
@@ -18,7 +18,11 @@ interface Invoice {
   created_at: string;
 }
 
-export const InvoicingView: React.FC = () => {
+interface InvoicingViewProps {
+  onBack: () => void;
+}
+
+export const InvoicingView: React.FC<InvoicingViewProps> = ({ onBack }) => {
   const { profile } = useAuth();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -195,6 +199,14 @@ export const InvoicingView: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <button
+        onClick={onBack}
+        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+      >
+        <ArrowLeft className="h-5 w-5" />
+        <span>Back to Dashboard</span>
+      </button>
+
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Invoicing</h2>

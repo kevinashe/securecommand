@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import {
   MapPin, Users, AlertTriangle, CheckCircle, MessageSquare,
-  BarChart3, Clock, Shield, Activity, FileText
+  BarChart3, Clock, Shield, Activity, FileText, ArrowLeft
 } from 'lucide-react';
 
 interface Site {
@@ -39,7 +39,11 @@ interface CheckIn {
   profiles: { full_name: string };
 }
 
-export const ClientPortalView: React.FC = () => {
+interface ClientPortalViewProps {
+  onBack: () => void;
+}
+
+export const ClientPortalView: React.FC<ClientPortalViewProps> = ({ onBack }) => {
   const { profile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'incidents' | 'checkins' | 'analytics'>('overview');
@@ -182,6 +186,14 @@ export const ClientPortalView: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <button
+        onClick={onBack}
+        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+      >
+        <ArrowLeft className="h-5 w-5" />
+        <span>Back to Dashboard</span>
+      </button>
+
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Client Portal</h1>
         <p className="text-gray-600 mt-1">Monitor your security operations and sites</p>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Mail, Phone, Building2, Package, MessageSquare, Calendar, Filter, Search, UserPlus, X } from 'lucide-react';
+import { Users, Mail, Phone, Building2, Package, MessageSquare, Calendar, Filter, Search, UserPlus, X, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface Lead {
@@ -17,7 +17,11 @@ interface Lead {
   updated_at: string;
 }
 
-export const LeadsView: React.FC = () => {
+interface LeadsViewProps {
+  onBack: () => void;
+}
+
+export const LeadsView: React.FC<LeadsViewProps> = ({ onBack }) => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -130,6 +134,14 @@ export const LeadsView: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <button
+        onClick={onBack}
+        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+      >
+        <ArrowLeft className="h-5 w-5" />
+        <span>Back to Dashboard</span>
+      </button>
+
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Lead Management</h1>
         <p className="text-gray-600 mt-2">Track and manage incoming customer inquiries</p>

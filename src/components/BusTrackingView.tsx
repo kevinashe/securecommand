@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bus, Users, TrendingUp, Clock, MapPin, User } from 'lucide-react';
+import { Bus, Users, TrendingUp, Clock, MapPin, User, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -27,7 +27,11 @@ interface DailyStats {
   most_used_bus: string;
 }
 
-export default function BusTrackingView() {
+interface BusTrackingViewProps {
+  onBack: () => void;
+}
+
+export default function BusTrackingView({ onBack }: BusTrackingViewProps) {
   const { profile } = useAuth();
   const [buses, setBuses] = useState<BusWithPassengers[]>([]);
   const [dailyStats, setDailyStats] = useState<DailyStats | null>(null);
@@ -161,6 +165,14 @@ export default function BusTrackingView() {
 
   return (
     <div className="space-y-6">
+      <button
+        onClick={onBack}
+        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+      >
+        <ArrowLeft className="h-5 w-5" />
+        <span>Back to Dashboard</span>
+      </button>
+
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Bus Tracking</h2>
