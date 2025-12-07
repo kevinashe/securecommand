@@ -72,57 +72,57 @@ const AppContent: React.FC = () => {
         return <IncidentsView onBack={() => setCurrentView('dashboard')} />;
       case 'sos-alerts':
       case 'sos':
-        return <SOSView />;
+        return <SOSView onBack={() => setCurrentView('dashboard')} />;
       case 'messages':
-        return <MessagesView />;
+        return <MessagesView onBack={() => setCurrentView('dashboard')} />;
       case 'companies':
-        return <CompaniesView />;
+        return <CompaniesView onBack={() => setCurrentView('dashboard')} />;
       case 'sites':
-        return <SitesView />;
+        return <SitesView onBack={() => setCurrentView('dashboard')} />;
       case 'guards':
-        return <GuardsView />;
+        return <GuardsView onBack={() => setCurrentView('dashboard')} />;
       case 'patrol':
-        return <PatrolView />;
+        return <PatrolView onBack={() => setCurrentView('dashboard')} />;
       case 'checkin':
-        return <CheckInView />;
+        return <CheckInView onBack={() => setCurrentView('dashboard')} />;
       case 'equipment':
-        return <EquipmentView />;
+        return <EquipmentView onBack={() => setCurrentView('dashboard')} />;
       case 'billing':
-        return <BillingView />;
+        return <BillingView onBack={() => setCurrentView('dashboard')} />;
       case 'payments':
-        return <PaymentsView />;
+        return <PaymentsView onBack={() => setCurrentView('dashboard')} />;
       case 'tracking':
-        return <TrackingView />;
+        return <TrackingView onBack={() => setCurrentView('dashboard')} />;
       case 'settings':
-        return <CompanySettings />;
+        return <CompanySettings onBack={() => setCurrentView('dashboard')} />;
       case 'notifications':
-        return <NotificationsView />;
+        return <NotificationsView onBack={() => setCurrentView('dashboard')} />;
       case 'analytics':
         return <AnalyticsView onBack={() => setCurrentView('dashboard')} />;
       case 'history':
-        return <AssignmentHistoryView />;
+        return <AssignmentHistoryView onBack={() => setCurrentView('dashboard')} />;
       case 'pricing-plans':
-        return <PricingPlansView />;
+        return <PricingPlansView onBack={() => setCurrentView('dashboard')} />;
       case 'leads':
-        return <LeadsView />;
+        return <LeadsView onBack={() => setCurrentView('dashboard')} />;
       case 'system-settings':
-        return <SystemSettings />;
+        return <SystemSettings onBack={() => setCurrentView('dashboard')} />;
       case 'website-cms':
         return <WebsiteCMSSettings onBack={() => setCurrentView('dashboard')} />;
       case 'client-portal':
-        return <ClientPortalView />;
+        return <ClientPortalView onBack={() => setCurrentView('dashboard')} />;
       case 'advanced-scheduling':
         return <AdvancedScheduling onBack={() => setCurrentView('dashboard')} />;
       case 'time-attendance':
-        return <TimeAttendance />;
+        return <TimeAttendance onBack={() => setCurrentView('dashboard')} />;
       case 'invoicing':
-        return <InvoicingView />;
+        return <InvoicingView onBack={() => setCurrentView('dashboard')} />;
       case 'bus-management':
-        return <BusManagementView />;
+        return <BusManagementView onBack={() => setCurrentView('dashboard')} />;
       case 'bus-checkin':
-        return <BusCheckInView />;
+        return <BusCheckInView onBack={() => setCurrentView('dashboard')} />;
       case 'bus-tracking':
-        return <BusTrackingView />;
+        return <BusTrackingView onBack={() => setCurrentView('dashboard')} />;
       default:
         return <Dashboard />;
     }
