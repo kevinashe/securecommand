@@ -108,7 +108,7 @@ const AppContent: React.FC = () => {
       case 'system-settings':
         return <SystemSettings />;
       case 'website-cms':
-        return <WebsiteCMSSettings />;
+        return <WebsiteCMSSettings onBack={() => setCurrentView('dashboard')} />;
       case 'client-portal':
         return <ClientPortalView />;
       case 'advanced-scheduling':
