@@ -40,7 +40,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 });
 
 const userId = 'a88784a9-6a2b-4b7b-8beb-f85bbf470362';
-const newPassword = 'Admin123!';
+const newPassword = 'admin12345';
 
 console.log('Resetting password for superadmin...');
 
@@ -57,5 +57,5 @@ if (error) {
 console.log('\n✅ Password reset successfully!');
 console.log('\nLogin credentials:');
 console.log('Email: alphonsoashe@gmail.com');
-console.log('Password: Admin123!');
+console.log('Password: admin12345');
 console.log('\n⚠️  Please change this password after logging in!');
