@@ -128,6 +128,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error: { message: 'No profile found. Please complete your registration.' } as AuthError };
       }
 
+      // Super admins don't need a company code
+      if (userProfile.role === 'super_admin') {
+        await fetchProfile(authData.user.id);
+        return { error: null };
+      }
+
       // If user already has a company_id, they don't need to enter company code again
       if (userProfile.company_id) {
         // Get the company code for this user's company
