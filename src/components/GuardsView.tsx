@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Users, Plus, Edit, Trash2, X, Shield, Mail, Phone, MapPin, History, Building2, ArrowLeft } from 'lucide-react';
+import { showToast } from '../lib/toast';
+import { Users, Plus, CreditCard as Edit, Trash2, X, Shield, Mail, Phone, MapPin, History, Building2, ArrowLeft } from 'lucide-react';
 
 interface Guard {
   id: string;
@@ -79,6 +80,7 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
       setGuards(data || []);
     } catch (error) {
       console.error('Error loading guards:', error);
+      showToast('error', 'Failed to load guards');
     } finally {
       setLoading(false);
     }
@@ -96,6 +98,7 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
       setSites(data || []);
     } catch (error) {
       console.error('Error loading sites:', error);
+      showToast('error', 'Failed to load sites');
     }
   };
 
@@ -156,11 +159,11 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
         const successMessage = newStaffCode
           ? `User created successfully! Staff Code: ${newStaffCode}`
           : `${formData.role === 'super_admin' ? 'Super Admin' : 'User'} created successfully!`;
-        alert(successMessage);
+        showToast('success', successMessage);
       }
     } catch (error: any) {
       console.error('Error creating user:', error);
-      alert(error.message || 'Failed to create user');
+      showToast('error', error.message || 'Failed to create user');
     }
   };
 
@@ -185,6 +188,7 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
       }
     } catch (error) {
       console.error('Error updating guard:', error);
+      showToast('error', 'Failed to update guard');
     }
   };
 
@@ -204,6 +208,7 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
       }
     } catch (error) {
       console.error('Error toggling guard status:', error);
+      showToast('error', 'Failed to update guard status');
     }
   };
 
@@ -238,6 +243,7 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
       setEmploymentHistory(formattedHistory);
     } catch (error) {
       console.error('Error loading employment history:', error);
+      showToast('error', 'Failed to load employment history');
     }
   };
 

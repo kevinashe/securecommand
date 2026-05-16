@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Calendar, Plus, Clock, MapPin, User, X, ChevronLeft, ChevronRight, List, Edit, Trash2, Play, ArrowLeft } from 'lucide-react';
+import { showToast } from '../lib/toast';
+import { Calendar, Plus, Clock, MapPin, User, X, ChevronLeft, ChevronRight, List, CreditCard as Edit, Trash2, Play, ArrowLeft } from 'lucide-react';
 
 type ViewMode = 'week' | 'month' | 'list';
 
@@ -65,6 +66,7 @@ export const ShiftsView: React.FC<ShiftsViewProps> = ({ onBack }) => {
       }
     } catch (error) {
       console.error('Error loading shifts:', error);
+      showToast('error', 'Failed to load shifts');
     } finally {
       setLoading(false);
     }
@@ -113,6 +115,7 @@ export const ShiftsView: React.FC<ShiftsViewProps> = ({ onBack }) => {
       if (guardsRes.data) setGuards(guardsRes.data);
     } catch (error) {
       console.error('Error loading sites and guards:', error);
+      showToast('error', 'Failed to load sites and guards');
     }
   };
 
@@ -140,6 +143,7 @@ export const ShiftsView: React.FC<ShiftsViewProps> = ({ onBack }) => {
       }
     } catch (error) {
       console.error('Error creating shift:', error);
+      showToast('error', 'Failed to create shift');
     }
   };
 
@@ -172,6 +176,7 @@ export const ShiftsView: React.FC<ShiftsViewProps> = ({ onBack }) => {
       }
     } catch (error) {
       console.error('Error updating shift:', error);
+      showToast('error', 'Failed to update shift');
     }
   };
 
@@ -189,6 +194,7 @@ export const ShiftsView: React.FC<ShiftsViewProps> = ({ onBack }) => {
       }
     } catch (error) {
       console.error('Error deleting shift:', error);
+      showToast('error', 'Failed to delete shift');
     }
   };
 
@@ -216,6 +222,7 @@ export const ShiftsView: React.FC<ShiftsViewProps> = ({ onBack }) => {
       }
     } catch (error) {
       console.error('Error updating shift:', error);
+      showToast('error', 'Failed to update shift status');
     }
   };
 
@@ -953,7 +960,7 @@ export const ShiftsView: React.FC<ShiftsViewProps> = ({ onBack }) => {
                           loadShifts();
                         } catch (error) {
                           console.error('Error starting shift:', error);
-                          alert('Failed to start shift');
+                          showToast('error', 'Failed to start shift');
                         }
                       }}
                       className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
@@ -979,7 +986,7 @@ export const ShiftsView: React.FC<ShiftsViewProps> = ({ onBack }) => {
                           loadShifts();
                         } catch (error) {
                           console.error('Error ending shift:', error);
-                          alert('Failed to end shift');
+                          showToast('error', 'Failed to end shift');
                         }
                       }}
                       className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"

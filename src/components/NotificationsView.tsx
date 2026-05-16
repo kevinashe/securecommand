@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { Bell, Check, CheckCheck, Trash2, AlertTriangle, Info, AlertCircle, Loader, ArrowLeft } from 'lucide-react';
+import { showToast } from '../lib/toast';
 
 interface Notification {
   id: string;
@@ -46,6 +47,7 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({ onBack }) 
       setNotifications(data || []);
     } catch (error) {
       console.error('Error loading notifications:', error);
+      showToast('error', 'Failed to load notifications');
     } finally {
       setLoading(false);
     }
@@ -84,6 +86,7 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({ onBack }) 
       await loadNotifications();
     } catch (error) {
       console.error('Error marking notification as read:', error);
+      showToast('error', 'Failed to mark notification as read');
     }
   };
 
@@ -99,6 +102,7 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({ onBack }) 
       await loadNotifications();
     } catch (error) {
       console.error('Error marking all as read:', error);
+      showToast('error', 'Failed to mark all as read');
     }
   };
 
@@ -113,6 +117,7 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({ onBack }) 
       await loadNotifications();
     } catch (error) {
       console.error('Error deleting notification:', error);
+      showToast('error', 'Failed to delete notification');
     }
   };
 

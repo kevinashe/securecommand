@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Package, Plus, Edit, Trash2, X, Radio, ArrowLeft } from 'lucide-react';
+import { Package, Plus, CreditCard as Edit, Trash2, X, Radio, ArrowLeft } from 'lucide-react';
+import { showToast } from '../lib/toast';
 
 interface Equipment {
   id: string;
@@ -97,6 +98,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({ onBack }) => {
       setEquipment(formattedData || []);
     } catch (error) {
       console.error('Error loading equipment:', error);
+      showToast('error', 'Failed to load equipment');
     } finally {
       setLoading(false);
     }
@@ -118,6 +120,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({ onBack }) => {
       setGuards(data || []);
     } catch (error) {
       console.error('Error loading guards:', error);
+      showToast('error', 'Failed to load guards');
     }
   };
 
@@ -133,6 +136,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({ onBack }) => {
       setSites(data || []);
     } catch (error) {
       console.error('Error loading sites:', error);
+      showToast('error', 'Failed to load sites');
     }
   };
 
@@ -192,6 +196,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({ onBack }) => {
       }
     } catch (error) {
       console.error('Error updating equipment:', error);
+      showToast('error', 'Failed to update equipment');
     }
   };
 
@@ -206,6 +211,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({ onBack }) => {
       }
     } catch (error) {
       console.error('Error deleting equipment:', error);
+      showToast('error', 'Failed to delete equipment');
     }
   };
 

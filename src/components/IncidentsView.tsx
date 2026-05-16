@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Incident } from '../lib/supabase';
 import { AlertTriangle, Plus, MapPin, Clock, User, X, Camera, ArrowLeft } from 'lucide-react';
+import { showToast } from '../lib/toast';
 
 interface IncidentsViewProps {
   onBack?: () => void;
@@ -72,6 +73,7 @@ export const IncidentsView: React.FC<IncidentsViewProps> = ({ onBack }) => {
       }
     } catch (error) {
       console.error('Error loading incidents:', error);
+      showToast('error', 'Failed to load incidents');
     } finally {
       setLoading(false);
     }
@@ -89,6 +91,7 @@ export const IncidentsView: React.FC<IncidentsViewProps> = ({ onBack }) => {
       if (data) setSites(data);
     } catch (error) {
       console.error('Error loading sites:', error);
+      showToast('error', 'Failed to load sites');
     }
   };
 
@@ -190,6 +193,7 @@ export const IncidentsView: React.FC<IncidentsViewProps> = ({ onBack }) => {
       }
     } catch (error) {
       console.error('Error creating incident:', error);
+      showToast('error', 'Failed to create incident');
     }
   };
 
@@ -205,6 +209,7 @@ export const IncidentsView: React.FC<IncidentsViewProps> = ({ onBack }) => {
       }
     } catch (error) {
       console.error('Error updating incident:', error);
+      showToast('error', 'Failed to update incident status');
     }
   };
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Bus, Users, TrendingUp, Clock, MapPin, User, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { showToast } from '../lib/toast';
 
 interface BusWithPassengers {
   id: string;
@@ -102,6 +103,7 @@ export default function BusTrackingView({ onBack }: BusTrackingViewProps) {
       setBuses(busesWithPassengers);
     } catch (error) {
       console.error('Error fetching bus data:', error);
+      showToast('error', 'Failed to load bus data');
     } finally {
       setLoading(false);
     }
@@ -114,7 +116,7 @@ export default function BusTrackingView({ onBack }: BusTrackingViewProps) {
 
       const { data: todayCheckIns, error } = await supabase
         .from('bus_check_ins')
-        .select('bus_id, user_id, company_buses(bus_number)')
+        .select('bus_id, user_id')
         .eq('company_id', profile?.company_id)
         .gte('checked_in_at', today.toISOString());
 
@@ -122,23 +124,22 @@ export default function BusTrackingView({ onBack }: BusTrackingViewProps) {
 
       const uniquePassengers = new Set(todayCheckIns?.map((c) => c.user_id)).size;
 
-      const busUsage = todayCheckIns?.reduce((acc, checkIn) => {
-        const busNumber = checkIn.company_buses?.bus_number || 'Unknown';
-        acc[busNumber] = (acc[busNumber] || 0) + 1;
+      const busIdCounts = todayCheckIns?.reduce((acc, checkIn) => {
+        acc[checkIn.bus_id] = (acc[checkIn.bus_id] || 0) + 1;
         return acc;
-      }, {} as Record<string, number>);
+      }, {} as Record<string, number>) || {};
 
-      const mostUsedBus = busUsage
-        ? Object.entries(busUsage).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A'
-        : 'N/A';
+      const topBusId = Object.entries(busIdCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
+      const topBus = topBusId ? buses.find((b) => b.id === topBusId) : null;
 
       setDailyStats({
         total_check_ins: todayCheckIns?.length || 0,
         unique_passengers: uniquePassengers,
-        most_used_bus: mostUsedBus
+        most_used_bus: topBus?.bus_number || 'N/A',
       });
     } catch (error) {
       console.error('Error fetching daily stats:', error);
+      showToast('error', 'Failed to load daily statistics');
     }
   };
 

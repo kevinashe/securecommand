@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { MapPin, Plus, Edit, Trash2, X, QrCode, Download, Printer, Calendar, ChevronLeft, ChevronRight, Users, Shield, ArrowLeft } from 'lucide-react';
+import { showToast } from '../lib/toast';
+import { MapPin, Plus, CreditCard as Edit, Trash2, X, QrCode, Download, Printer, Calendar, ChevronLeft, ChevronRight, Users, Shield, ArrowLeft } from 'lucide-react';
 
 interface Site {
   id: string;
@@ -79,6 +80,7 @@ export const SitesView: React.FC<SitesViewProps> = ({ onBack }) => {
       setSites(data || []);
     } catch (error) {
       console.error('Error loading sites:', error);
+      showToast('error', 'Failed to load sites');
     } finally {
       setLoading(false);
     }
@@ -96,6 +98,7 @@ export const SitesView: React.FC<SitesViewProps> = ({ onBack }) => {
       setCompanies(data || []);
     } catch (error) {
       console.error('Error loading companies:', error);
+      showToast('error', 'Failed to load companies');
     }
   };
 
@@ -117,6 +120,7 @@ export const SitesView: React.FC<SitesViewProps> = ({ onBack }) => {
       setSiteShifts(data || []);
     } catch (error) {
       console.error('Error loading site shifts:', error);
+      showToast('error', 'Failed to load shifts');
     } finally {
       setLoadingShifts(false);
     }
@@ -180,7 +184,7 @@ export const SitesView: React.FC<SitesViewProps> = ({ onBack }) => {
       const companyId = formData.company_id || profile?.company_id;
 
       if (!companyId) {
-        alert('Please select a company');
+        showToast('error', 'Please select a company');
         return;
       }
 
@@ -209,7 +213,7 @@ export const SitesView: React.FC<SitesViewProps> = ({ onBack }) => {
       });
     } catch (error) {
       console.error('Error creating site:', error);
-      alert('Failed to create site. Please try again.');
+      showToast('error', 'Failed to create site. Please try again.');
     }
   };
 
@@ -230,6 +234,7 @@ export const SitesView: React.FC<SitesViewProps> = ({ onBack }) => {
       }
     } catch (error) {
       console.error('Error updating site:', error);
+      showToast('error', 'Failed to update site');
     }
   };
 
@@ -244,6 +249,7 @@ export const SitesView: React.FC<SitesViewProps> = ({ onBack }) => {
       }
     } catch (error) {
       console.error('Error deleting site:', error);
+      showToast('error', 'Failed to delete site');
     }
   };
 
@@ -303,6 +309,7 @@ export const SitesView: React.FC<SitesViewProps> = ({ onBack }) => {
       img.src = URL.createObjectURL(blob);
     } catch (error) {
       console.error('Error generating QR code:', error);
+      showToast('error', 'Failed to generate QR code');
       setQrCodeUrl(qrUrl);
     }
   };
@@ -322,6 +329,7 @@ export const SitesView: React.FC<SitesViewProps> = ({ onBack }) => {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error downloading QR code:', error);
+      showToast('error', 'Failed to download QR code');
     }
   };
 

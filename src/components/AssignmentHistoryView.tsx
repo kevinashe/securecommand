@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { History, MapPin, Calendar, Clock, Briefcase, Loader, ArrowLeft } from 'lucide-react';
+import { showToast } from '../lib/toast';
 
 interface Assignment {
   id: string;
@@ -84,6 +85,7 @@ export const AssignmentHistoryView: React.FC<AssignmentHistoryViewProps> = ({ on
       calculateStats(formattedData);
     } catch (error) {
       console.error('Error loading assignments:', error);
+      showToast('error', 'Failed to load assignments');
     } finally {
       setLoading(false);
     }
@@ -121,6 +123,7 @@ export const AssignmentHistoryView: React.FC<AssignmentHistoryViewProps> = ({ on
       setEmploymentHistory(formattedData);
     } catch (error) {
       console.error('Error loading employment history:', error);
+      showToast('error', 'Failed to load employment history');
     }
   };
 

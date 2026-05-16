@@ -189,6 +189,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { error: { message: 'Company code is required to sign up' } as AuthError };
     }
 
+    if (password.length < 8) {
+      return { error: { message: 'Password must be at least 8 characters' } as AuthError };
+    }
+
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
+      return { error: { message: 'Password must contain at least one uppercase letter, one lowercase letter, and one number' } as AuthError };
+    }
+
     const { data: company, error: companyError } = await supabase
       .from('companies')
       .select('id, name, is_active')

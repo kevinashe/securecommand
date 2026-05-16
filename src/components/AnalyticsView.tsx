@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { BarChart3, TrendingUp, Users, AlertTriangle, Clock, MapPin, Loader, DollarSign, Award, Target, ArrowLeft } from 'lucide-react';
+import { showToast } from '../lib/toast';
 
 interface Stats {
   totalGuards: number;
@@ -194,6 +195,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ onBack }) => {
 
     } catch (error) {
       console.error('Error loading analytics:', error);
+      showToast('error', 'Failed to load analytics data');
     } finally {
       setLoading(false);
     }
@@ -341,6 +343,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ onBack }) => {
         .slice(0, 5);
     } catch (error) {
       console.error('Error calculating guard performance:', error);
+      showToast('error', 'Failed to load analytics data');
       return [];
     }
   };
@@ -397,6 +400,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ onBack }) => {
       return costData.sort((a, b) => b.estimatedCost - a.estimatedCost);
     } catch (error) {
       console.error('Error calculating site costs:', error);
+      showToast('error', 'Failed to load analytics data');
       return [];
     }
   };

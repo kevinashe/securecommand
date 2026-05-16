@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { DollarSign, Plus, Edit, Trash2, Check, X, Loader, Star, Users, MapPin, Shield, ArrowLeft } from 'lucide-react';
+import { DollarSign, Plus, CreditCard as Edit, Trash2, Check, X, Loader, Star, Users, MapPin, Shield, ArrowLeft } from 'lucide-react';
+import { showToast } from '../lib/toast';
 
 interface PricingPlan {
   id: string;
@@ -73,6 +74,7 @@ export const PricingPlansView: React.FC<PricingPlansViewProps> = ({ onBack }) =>
       setPlans(data || []);
     } catch (error) {
       console.error('Error loading pricing plans:', error);
+      showToast('error', 'Failed to load pricing plans');
     } finally {
       setLoading(false);
     }
@@ -238,12 +240,8 @@ export const PricingPlansView: React.FC<PricingPlansViewProps> = ({ onBack }) =>
     setFormData({ ...formData, features: newFeatures });
   };
 
-  const calculateMonthlyTotal = (licenseFee: number, perGuardFee: number, numGuards: number = 10) => {
-    return licenseFee + (perGuardFee * numGuards);
-  };
-
-  const calculateYearlyTotal = (licenseFee: number, perGuardFee: number, numGuards: number = 10) => {
-    return licenseFee + (perGuardFee * numGuards);
+  const calculateTotal = (licenseFee: number, perGuardFee: number, numGuards: number = 10) => {
+    return Math.round((licenseFee + (perGuardFee * numGuards)) * 100) / 100;
   };
 
   if (profile?.role !== 'super_admin') {
@@ -356,8 +354,8 @@ export const PricingPlansView: React.FC<PricingPlansViewProps> = ({ onBack }) =>
               <div className="mb-6 border-t border-gray-200 pt-4">
                 <p className="text-sm font-semibold text-gray-900 mb-2">Example: With 10 guards</p>
                 <div className="space-y-1 text-sm text-gray-700">
-                  <p>Monthly: ${calculateMonthlyTotal(plan.monthly_license_fee, plan.per_guard_monthly_fee, 10).toFixed(2)}</p>
-                  <p>Yearly: ${calculateYearlyTotal(plan.yearly_license_fee, plan.per_guard_yearly_fee, 10).toFixed(2)}</p>
+                  <p>Monthly: ${calculateTotal(plan.monthly_license_fee, plan.per_guard_monthly_fee, 10).toFixed(2)}</p>
+                  <p>Yearly: ${calculateTotal(plan.yearly_license_fee, plan.per_guard_yearly_fee, 10).toFixed(2)}</p>
                 </div>
               </div>
 

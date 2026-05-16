@@ -4,6 +4,7 @@ import {
   Users, Building, TrendingUp, Activity, DollarSign, HardDrive,
   AlertCircle, CheckCircle, Clock, Database, Zap, FileText
 } from 'lucide-react';
+import { showToast } from '../lib/toast';
 import { QuickActionsPanel } from './QuickActionsPanel';
 import { SimpleLineChart } from './SimpleLineChart';
 
@@ -40,12 +41,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onView
     monthlyRevenue: 0,
     totalStorage: 0,
   });
-  const [systemHealth, setSystemHealth] = useState<SystemHealth>({
-    uptime: 99.9,
-    apiResponseTime: 45,
-    errorRate: 0.1,
-    databaseQueryTime: 12,
-  });
+  const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
   const [loading, setLoading] = useState(true);
   const [recentCompanies, setRecentCompanies] = useState<any[]>([]);
   const [inactiveCompanies, setInactiveCompanies] = useState<any[]>([]);
@@ -157,21 +153,22 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onView
         .order('recorded_at', { ascending: false })
         .limit(4);
 
-      if (healthMetrics) {
-        const healthMap: any = {};
-        healthMetrics.forEach(m => {
+      if (healthMetrics && healthMetrics.length > 0) {
+        const healthMap: Record<string, number> = {};
+        healthMetrics.forEach((m: { metric_type: string; value: number }) => {
           healthMap[m.metric_type] = m.value;
         });
 
         setSystemHealth({
-          uptime: healthMap.uptime || 99.9,
-          apiResponseTime: healthMap.api_response_time || 45,
-          errorRate: healthMap.error_rate || 0.1,
-          databaseQueryTime: healthMap.database_query_time || 12,
+          uptime: healthMap.uptime ?? 0,
+          apiResponseTime: healthMap.api_response_time ?? 0,
+          errorRate: healthMap.error_rate ?? 0,
+          databaseQueryTime: healthMap.database_query_time ?? 0,
         });
       }
     } catch (error) {
       console.error('Error loading super admin dashboard:', error);
+      showToast('error', 'Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
@@ -287,39 +284,46 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onView
 
       <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
         <h3 className="text-lg font-bold text-gray-900 mb-4">System Health</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-            <div className="flex items-center gap-2 mb-2">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <span className="text-sm font-medium text-gray-700">Uptime</span>
+        {systemHealth ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+              <div className="flex items-center gap-2 mb-2">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <span className="text-sm font-medium text-gray-700">Uptime</span>
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{systemHealth.uptime}%</p>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{systemHealth.uptime}%</p>
-          </div>
 
-          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <div className="flex items-center gap-2 mb-2">
-              <Zap className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium text-gray-700">API Response</span>
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex items-center gap-2 mb-2">
+                <Zap className="h-4 w-4 text-blue-600" />
+                <span className="text-sm font-medium text-gray-700">API Response</span>
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{systemHealth.apiResponseTime}ms</p>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{systemHealth.apiResponseTime}ms</p>
-          </div>
 
-          <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertCircle className="h-4 w-4 text-yellow-600" />
-              <span className="text-sm font-medium text-gray-700">Error Rate</span>
+            <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertCircle className="h-4 w-4 text-yellow-600" />
+                <span className="text-sm font-medium text-gray-700">Error Rate</span>
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{systemHealth.errorRate}%</p>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{systemHealth.errorRate}%</p>
-          </div>
 
-          <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-            <div className="flex items-center gap-2 mb-2">
-              <Database className="h-4 w-4 text-purple-600" />
-              <span className="text-sm font-medium text-gray-700">DB Query</span>
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="flex items-center gap-2 mb-2">
+                <Database className="h-4 w-4 text-gray-600" />
+                <span className="text-sm font-medium text-gray-700">DB Query</span>
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{systemHealth.databaseQueryTime}ms</p>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{systemHealth.databaseQueryTime}ms</p>
           </div>
-        </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <Database className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+            <p className="text-sm">No system health metrics available yet</p>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -436,7 +440,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onView
           <div>
             <h3 className="text-2xl font-bold mb-2">System Status: Online</h3>
             <p className="text-blue-100">
-              Uptime: {systemHealth.uptime}% | All systems operational
+              {systemHealth ? `Uptime: ${systemHealth.uptime}% | All systems operational` : 'Monitoring active'}
             </p>
           </div>
           <Activity className="h-12 w-12 text-blue-200" />

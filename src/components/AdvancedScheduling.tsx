@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { Calendar, Plus, Wand2, Users, Clock, MapPin, CheckCircle, X, AlertCircle, ArrowLeft } from 'lucide-react';
+import { showToast } from '../lib/toast';
 
 interface Guard {
   id: string;
@@ -126,6 +127,7 @@ export const AdvancedScheduling: React.FC<AdvancedSchedulingProps> = ({ onBack }
       if (templatesRes.data) setTemplates(templatesRes.data);
     } catch (error) {
       console.error('Error loading data:', error);
+      showToast('error', 'Failed to load scheduling data');
     } finally {
       setLoading(false);
     }
@@ -269,6 +271,7 @@ export const AdvancedScheduling: React.FC<AdvancedSchedulingProps> = ({ onBack }
       loadData();
     } catch (error) {
       console.error('Error deleting template:', error);
+      showToast('error', 'Failed to delete template');
     }
   };
 

@@ -24,8 +24,13 @@ export const PasswordReset: React.FC = () => {
     setError('');
     setSuccess('');
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters');
+      return;
+    }
+
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
+      setError('Password must contain at least one uppercase letter, one lowercase letter, and one number');
       return;
     }
 
@@ -97,7 +102,7 @@ export const PasswordReset: React.FC = () => {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="Enter new password"
                 required
-                minLength={6}
+                minLength={8}
               />
             </div>
 
@@ -113,7 +118,7 @@ export const PasswordReset: React.FC = () => {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="Confirm new password"
                 required
-                minLength={6}
+                minLength={8}
               />
             </div>
 

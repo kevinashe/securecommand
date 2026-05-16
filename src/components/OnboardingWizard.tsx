@@ -96,7 +96,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
     try {
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: guardData.email,
-        password: Math.random().toString(36).slice(-12),
+        password: Array.from(crypto.getRandomValues(new Uint8Array(12)), b => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%'[b % 65]).join(''),
         options: {
           data: {
             full_name: guardData.full_name,

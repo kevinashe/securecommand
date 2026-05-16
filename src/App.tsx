@@ -28,6 +28,7 @@ import { LeadsView } from './components/LeadsView';
 import { SystemSettings } from './components/SystemSettings';
 import { WebsiteCMSSettings } from './components/WebsiteCMSSettings';
 import { ClientPortalView } from './components/ClientPortalView';
+import { ToastContainer } from './components/ToastContainer';
 import { MarketingLayout } from './components/marketing/MarketingLayout';
 import { LandingPage } from './components/marketing/LandingPage';
 import { ProductsPage } from './components/marketing/ProductsPage';
@@ -204,6 +205,7 @@ function App() {
     return (
       <AuthProvider>
         <OfflineProvider>
+          <ToastContainer />
           <RootApp />
         </OfflineProvider>
       </AuthProvider>

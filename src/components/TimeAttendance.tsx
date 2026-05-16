@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { Clock, MapPin, Camera, Coffee, LogOut as LogOutIcon, CheckCircle, AlertCircle, X, ArrowLeft } from 'lucide-react';
+import { showToast } from '../lib/toast';
 
 interface TimeClockEntry {
   id: string;
@@ -82,6 +83,7 @@ export const TimeAttendance: React.FC<TimeAttendanceProps> = ({ onBack }) => {
       }
     } catch (error) {
       console.error('Error loading time clock data:', error);
+      showToast('error', 'Failed to load time attendance data');
     } finally {
       setLoading(false);
     }

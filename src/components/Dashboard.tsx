@@ -7,6 +7,7 @@ import {
   Clock, CheckCircle, Zap
 } from 'lucide-react';
 import { SuperAdminDashboard } from './SuperAdminDashboard';
+import { showToast } from '../lib/toast';
 
 interface Stats {
   totalGuards: number;
@@ -158,6 +159,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
       }
     } catch (error) {
       console.error('Error loading dashboard:', error);
+      showToast('error', 'Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
