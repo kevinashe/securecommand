@@ -555,7 +555,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ onBack }) => {
                   <div className="flex-1 bg-gray-200 rounded-full h-8 relative overflow-hidden">
                     <div
                       className="bg-blue-600 h-full rounded-full flex items-center justify-end px-3"
-                      style={{ width: `${Math.min((item.count / Math.max(...chartData.incidentsByDay.map(d => d.count))) * 100, 100)}%` }}
+                      style={{ width: `${Math.min((item.count / Math.max(1, ...chartData.incidentsByDay.map(d => d.count))) * 100, 100)}%` }}
                     >
                       <span className="text-xs font-semibold text-white">{item.count}</span>
                     </div>
@@ -585,7 +585,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ onBack }) => {
                     <div className="flex-1 bg-gray-200 rounded-full h-8 relative overflow-hidden">
                       <div
                         className={`${colors[item.severity as keyof typeof colors] || 'bg-gray-600'} h-full rounded-full flex items-center justify-end px-3`}
-                        style={{ width: `${Math.min((item.count / Math.max(...chartData.incidentsBySeverity.map(d => d.count))) * 100, 100)}%` }}
+                        style={{ width: `${Math.min((item.count / Math.max(1, ...chartData.incidentsBySeverity.map(d => d.count))) * 100, 100)}%` }}
                       >
                         <span className="text-xs font-semibold text-white">{item.count}</span>
                       </div>
@@ -609,7 +609,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ onBack }) => {
                   <div className="flex-1 bg-gray-200 rounded-full h-8 relative overflow-hidden">
                     <div
                       className="bg-purple-600 h-full rounded-full flex items-center justify-end px-3"
-                      style={{ width: `${Math.min((item.count / Math.max(...chartData.checkInsByDay.map(d => d.count))) * 100, 100)}%` }}
+                      style={{ width: `${Math.min((item.count / Math.max(1, ...chartData.checkInsByDay.map(d => d.count))) * 100, 100)}%` }}
                     >
                       <span className="text-xs font-semibold text-white">{item.count}</span>
                     </div>
@@ -639,7 +639,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ onBack }) => {
                     <div className="flex-1 bg-gray-200 rounded-full h-8 relative overflow-hidden">
                       <div
                         className={`${colors[item.status as keyof typeof colors] || 'bg-gray-600'} h-full rounded-full flex items-center justify-end px-3`}
-                        style={{ width: `${Math.min((item.count / Math.max(...chartData.shiftsByStatus.map(d => d.count))) * 100, 100)}%` }}
+                        style={{ width: `${Math.min((item.count / Math.max(1, ...chartData.shiftsByStatus.map(d => d.count))) * 100, 100)}%` }}
                       >
                         <span className="text-xs font-semibold text-white">{item.count}</span>
                       </div>

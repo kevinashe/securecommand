@@ -42,8 +42,13 @@ export const CompanySignup: React.FC<CompanySignupProps> = ({ onBack }) => {
       return;
     }
 
-    if (adminData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+    if (adminData.password.length < 8) {
+      setError('Password must be at least 8 characters');
+      return;
+    }
+
+    if (!/[A-Z]/.test(adminData.password) || !/[a-z]/.test(adminData.password) || !/[0-9]/.test(adminData.password)) {
+      setError('Password must contain at least one uppercase letter, one lowercase letter, and one number');
       return;
     }
 
@@ -74,7 +79,7 @@ export const CompanySignup: React.FC<CompanySignupProps> = ({ onBack }) => {
         throw new Error(result.error || 'Failed to create company account');
       }
 
-      setSuccess(`Company registered successfully! Your company code is: ${result.companyCode}. Please save this code and share it with your team members. Redirecting to login...`);
+      setSuccess(`Company registered successfully! Your company code is: ${result.companyCode}. Save this code -- you will need it to sign in. Share it with employees you add to the system. Redirecting to login...`);
 
       setTimeout(() => {
         onBack();
@@ -267,7 +272,7 @@ export const CompanySignup: React.FC<CompanySignupProps> = ({ onBack }) => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="••••••••"
                   required
-                  minLength={6}
+                  minLength={8}
                 />
               </div>
 
@@ -283,7 +288,7 @@ export const CompanySignup: React.FC<CompanySignupProps> = ({ onBack }) => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="••••••••"
                   required
-                  minLength={6}
+                  minLength={8}
                 />
               </div>
 
@@ -317,9 +322,10 @@ export const CompanySignup: React.FC<CompanySignupProps> = ({ onBack }) => {
             <div className="bg-blue-50 rounded-lg p-4">
               <h3 className="font-semibold text-gray-900 mb-2">What happens next?</h3>
               <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Your company account will be created instantly</li>
-                <li>• You'll receive a unique company code for your team</li>
-                <li>• Start adding sites, guards, and scheduling shifts</li>
+                <li>• Your company account and admin login will be created instantly</li>
+                <li>• You'll receive a unique company code to sign in with</li>
+                <li>• Add your employees from the Staff Management section</li>
+                <li>• Share the company code with your team so they can log in</li>
                 <li>• Access all features with a 14-day free trial</li>
               </ul>
             </div>

@@ -4,6 +4,7 @@ import { offlineStorage } from './offlineStorage';
 class SyncManager {
   private syncInterval: number | null = null;
   private isSyncing = false;
+  private onlineHandler: (() => void) | null = null;
 
   startAutoSync(intervalMs: number = 30000): void {
     if (this.syncInterval) return;
@@ -12,15 +13,20 @@ class SyncManager {
       this.syncQueuedActions();
     }, intervalMs);
 
-    window.addEventListener('online', () => {
+    this.onlineHandler = () => {
       this.syncQueuedActions();
-    });
+    };
+    window.addEventListener('online', this.onlineHandler);
   }
 
   stopAutoSync(): void {
     if (this.syncInterval) {
       clearInterval(this.syncInterval);
       this.syncInterval = null;
+    }
+    if (this.onlineHandler) {
+      window.removeEventListener('online', this.onlineHandler);
+      this.onlineHandler = null;
     }
   }
 

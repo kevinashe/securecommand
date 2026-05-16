@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Shield, Loader, Building2 } from 'lucide-react';
+import { Loader, Building2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface LoginPageProps {
@@ -8,14 +8,11 @@ interface LoginPageProps {
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToCompanySignup }) => {
-  const { signIn, signUp } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const { signIn } = useAuth();
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [companyCode, setCompanyCode] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState('security_officer');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -40,24 +37,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToCompanySignup 
           setEmail('');
         }, 3000);
       }
-    } else if (isSignUp) {
-      if (!companyCode || companyCode.trim() === '') {
-        setError('Company code is required to sign up');
-        setLoading(false);
-        return;
-      }
-
-      const { error } = await signUp(email, password, fullName, role, companyCode);
-      if (error) {
-        setError(error.message);
-      } else {
-        setSuccess('Account created! You can now sign in.');
-        setIsSignUp(false);
-        setEmail('');
-        setPassword('');
-        setCompanyCode('');
-        setFullName('');
-      }
     } else {
       const { error } = await signIn(email, password, companyCode || undefined);
       if (error) {
@@ -67,7 +46,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToCompanySignup 
 
     setLoading(false);
   };
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
@@ -87,37 +65,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToCompanySignup 
           <p className="text-center text-gray-600 mb-8">
             Security Management System
           </p>
-
-          {!isForgotPassword && (
-            <div className="flex space-x-2 mb-6">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSignUp(false);
-                  setError('');
-                  setSuccess('');
-                }}
-                className={`flex-1 py-2 rounded-lg font-medium transition-colors ${
-                  !isSignUp ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'
-                }`}
-              >
-                Sign In
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSignUp(true);
-                  setError('');
-                  setSuccess('');
-                }}
-                className={`flex-1 py-2 rounded-lg font-medium transition-colors ${
-                  isSignUp ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'
-                }`}
-              >
-                Sign Up
-              </button>
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {isForgotPassword && (
@@ -141,23 +88,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToCompanySignup 
               </div>
             )}
 
-            {isSignUp && !isForgotPassword && (
-              <div>
-                <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name
-                </label>
-                <input
-                  id="fullName"
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="John Doe"
-                  required
-                />
-              </div>
-            )}
-
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Email Address
@@ -176,8 +106,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToCompanySignup 
             {!isForgotPassword && (
               <div>
                 <label htmlFor="companyCode" className="block text-sm font-medium text-gray-700 mb-2">
-                  Company Code {!isSignUp && <span className="text-gray-400 font-normal">(optional)</span>}
-                  {isSignUp && <span className="text-red-500">*</span>}
+                  Company Code <span className="text-gray-400 font-normal">(optional for returning users)</span>
                 </label>
                 <input
                   id="companyCode"
@@ -187,13 +116,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToCompanySignup 
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-mono"
                   placeholder="CC-XXXXXX"
                   maxLength={9}
-                  required={isSignUp}
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  {isSignUp
-                    ? 'Enter the company code provided by your administrator. Contact your company admin if you don\'t have one.'
-                    : 'Only needed for first-time login. You can leave this blank after your initial sign-in.'
-                  }
+                  Enter the code provided by your company admin. Not needed after your first login.
                 </p>
               </div>
             )}
@@ -215,26 +140,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToCompanySignup 
               </div>
             )}
 
-            {isSignUp && !isForgotPassword && (
-              <div>
-                <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
-                  Role
-                </label>
-                <select
-                  id="role"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  required
-                >
-                  <option value="security_officer">Security Officer</option>
-                  <option value="site_manager">Site Manager</option>
-                  <option value="company_admin">Company Admin</option>
-                  <option value="client">Client</option>
-                </select>
-              </div>
-            )}
-
             <button
               type="submit"
               disabled={loading}
@@ -243,14 +148,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToCompanySignup 
               {loading ? (
                 <>
                   <Loader className="animate-spin h-5 w-5 mr-2" />
-                  {isForgotPassword ? 'Sending...' : isSignUp ? 'Creating Account...' : 'Signing In...'}
+                  {isForgotPassword ? 'Sending...' : 'Signing In...'}
                 </>
               ) : (
-                isForgotPassword ? 'Send Reset Link' : isSignUp ? 'Create Account' : 'Sign In'
+                isForgotPassword ? 'Send Reset Link' : 'Sign In'
               )}
             </button>
 
-            {!isSignUp && !isForgotPassword && (
+            {!isForgotPassword && (
               <div className="text-center">
                 <button
                   type="button"
@@ -283,10 +188,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToCompanySignup 
             )}
           </form>
 
-          {!isSignUp && !isForgotPassword && (
+          {!isForgotPassword && (
             <div className="mt-8 pt-6 border-t border-gray-200 space-y-4">
               <p className="text-sm text-gray-600 text-center">
-                Create test accounts using <span className="font-semibold">Sign Up</span> above
+                Your company admin will create your account and provide your login credentials.
               </p>
               {onNavigateToCompanySignup && (
                 <div className="text-center">
