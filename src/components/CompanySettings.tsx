@@ -79,14 +79,11 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({ onBack }) => {
 
   const [newMethod, setNewMethod] = useState({
     gateway_id: '',
-    type: 'card',
-    card_number: '',
-    card_holder: '',
-    expiry: '',
-    cvv: '',
+    type: 'bank_account',
+    label: '',
     bank_name: '',
-    account_number: '',
-    routing_number: '',
+    account_last4: '',
+    reference_note: '',
   });
 
   useEffect(() => {
@@ -260,21 +257,15 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({ onBack }) => {
       const gateway = gateways.find((g) => g.id === newMethod.gateway_id);
       if (!gateway) return;
 
-      let details: any = {};
+      const details: Record<string, string> = {
+        label: newMethod.label || `${newMethod.type} payment`,
+      };
 
-      if (newMethod.type === 'card') {
-        details = {
-          last4: newMethod.card_number.slice(-4),
-          holder_name: newMethod.card_holder,
-          expiry: newMethod.expiry,
-          brand: 'visa',
-        };
-      } else if (newMethod.type === 'bank_account') {
-        details = {
-          bank_name: newMethod.bank_name,
-          last4: newMethod.account_number.slice(-4),
-          routing_number: newMethod.routing_number,
-        };
+      if (newMethod.type === 'bank_account') {
+        details.bank_name = newMethod.bank_name;
+        details.last4 = newMethod.account_last4;
+      } else if (newMethod.type === 'manual') {
+        details.reference_note = newMethod.reference_note;
       }
 
       const { error } = await supabase.from('payment_methods').insert([
@@ -294,12 +285,10 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({ onBack }) => {
           gateway_id: '',
           type: 'card',
           card_number: '',
-          card_holder: '',
-          expiry: '',
-          cvv: '',
+          label: '',
           bank_name: '',
-          account_number: '',
-          routing_number: '',
+          account_last4: '',
+          reference_note: '',
         });
         setMessage({ type: 'success', text: 'Payment method added successfully!' });
       }
@@ -387,19 +376,39 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({ onBack }) => {
     e.preventDefault();
     setLoading(true);
 
+    if (!passwordData.currentPassword) {
+      setMessage({ type: 'error', text: 'Current password is required' });
+      setLoading(false);
+      return;
+    }
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setMessage({ type: 'error', text: 'New passwords do not match' });
       setLoading(false);
       return;
     }
 
-    if (passwordData.newPassword.length < 6) {
-      setMessage({ type: 'error', text: 'Password must be at least 6 characters' });
+    if (passwordData.newPassword.length < 8) {
+      setMessage({ type: 'error', text: 'Password must be at least 8 characters' });
       setLoading(false);
       return;
     }
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) throw new Error('Unable to verify identity');
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: passwordData.currentPassword,
+      });
+
+      if (signInError) {
+        setMessage({ type: 'error', text: 'Current password is incorrect' });
+        setLoading(false);
+        return;
+      }
+
       const { error: updateError } = await supabase.auth.updateUser({
         password: passwordData.newPassword
       });
@@ -816,6 +825,18 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({ onBack }) => {
 
         <form onSubmit={handlePasswordChange} className="space-y-4">
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
+            <input
+              type="password"
+              value={passwordData.currentPassword}
+              onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              required
+              placeholder="••••••••"
+            />
+          </div>
+
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
             <input
               type="password"
@@ -823,7 +844,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({ onBack }) => {
               onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               required
-              minLength={6}
+              minLength={8}
             />
           </div>
 
@@ -835,7 +856,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({ onBack }) => {
               onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               required
-              minLength={6}
+              minLength={8}
             />
           </div>
 
@@ -1004,69 +1025,23 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({ onBack }) => {
                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   required
                 >
-                  <option value="card">Credit/Debit Card</option>
-                  <option value="bank_account">Bank Account</option>
+                  <option value="bank_account">Bank Account / EFT</option>
+                  <option value="manual">Manual / Cash / Check</option>
                 </select>
               </div>
 
-              {newMethod.type === 'card' ? (
-                <>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Card Holder Name
-                    </label>
-                    <input
-                      type="text"
-                      value={newMethod.card_holder}
-                      onChange={(e) => setNewMethod({ ...newMethod, card_holder: e.target.value })}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Card Number
-                    </label>
-                    <input
-                      type="text"
-                      value={newMethod.card_number}
-                      onChange={(e) => setNewMethod({ ...newMethod, card_number: e.target.value })}
-                      placeholder="1234 5678 9012 3456"
-                      maxLength={19}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
-                        Expiry
-                      </label>
-                      <input
-                        type="text"
-                        value={newMethod.expiry}
-                        onChange={(e) => setNewMethod({ ...newMethod, expiry: e.target.value })}
-                        placeholder="MM/YY"
-                        maxLength={5}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">CVV</label>
-                      <input
-                        type="text"
-                        value={newMethod.cvv}
-                        onChange={(e) => setNewMethod({ ...newMethod, cvv: e.target.value })}
-                        placeholder="123"
-                        maxLength={4}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        required
-                      />
-                    </div>
-                  </div>
-                </>
-              ) : (
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Label</label>
+                <input
+                  type="text"
+                  value={newMethod.label}
+                  onChange={(e) => setNewMethod({ ...newMethod, label: e.target.value })}
+                  placeholder="e.g. Company Bank Account"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {newMethod.type === 'bank_account' ? (
                 <>
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -1082,33 +1057,35 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({ onBack }) => {
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Account Number
+                      Last 4 Digits of Account
                     </label>
                     <input
                       type="text"
-                      value={newMethod.account_number}
-                      onChange={(e) =>
-                        setNewMethod({ ...newMethod, account_number: e.target.value })
-                      }
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Routing Number
-                    </label>
-                    <input
-                      type="text"
-                      value={newMethod.routing_number}
-                      onChange={(e) =>
-                        setNewMethod({ ...newMethod, routing_number: e.target.value })
-                      }
+                      value={newMethod.account_last4}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                        setNewMethod({ ...newMethod, account_last4: val });
+                      }}
+                      placeholder="1234"
+                      maxLength={4}
                       className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       required
                     />
                   </div>
                 </>
+              ) : (
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Reference Note
+                  </label>
+                  <input
+                    type="text"
+                    value={newMethod.reference_note}
+                    onChange={(e) => setNewMethod({ ...newMethod, reference_note: e.target.value })}
+                    placeholder="e.g. Cash payment, Check #1234"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
               )}
 
               <div className="flex gap-3 pt-3">

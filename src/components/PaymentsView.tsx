@@ -8,11 +8,12 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  ArrowLeft,
   AlertCircle,
   Plus,
   X,
   Wallet,
+  Building2,
+  Info,
 } from 'lucide-react';
 
 interface PaymentGateway {
@@ -20,7 +21,7 @@ interface PaymentGateway {
   name: string;
   display_name: string;
   is_enabled: boolean;
-  configuration: any;
+  configuration: Record<string, unknown>;
 }
 
 interface PaymentMethod {
@@ -28,7 +29,7 @@ interface PaymentMethod {
   company_id: string;
   gateway_id: string;
   type: string;
-  details: any;
+  details: Record<string, string>;
   is_default: boolean;
   is_active: boolean;
   gateway_name?: string;
@@ -75,17 +76,15 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack }) => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [showGatewaySettings, setShowGatewaySettings] = useState(false);
+  const [error, setError] = useState('');
 
   const [newMethod, setNewMethod] = useState({
     gateway_id: '',
-    type: 'card',
-    card_number: '',
-    card_holder: '',
-    expiry: '',
-    cvv: '',
+    type: 'bank_account',
+    label: '',
     bank_name: '',
-    account_number: '',
-    routing_number: '',
+    account_last4: '',
+    reference_note: '',
   });
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('');
@@ -102,8 +101,9 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack }) => {
         loadPendingInvoices(),
         loadTransactions(),
       ]);
-    } catch (error) {
-      console.error('Error loading payment data:', error);
+    } catch (err) {
+      console.error('Error loading payment data:', err);
+      setError('Failed to load payment data. Please refresh the page.');
     } finally {
       setLoading(false);
     }
@@ -133,13 +133,13 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack }) => {
       .eq('is_active', true)
       .order('is_default', { ascending: false });
 
-    const formatted = data?.map((item: any) => ({
+    const formatted = data?.map((item: Record<string, unknown>) => ({
       ...item,
-      gateway_name: item.payment_gateways?.name,
-      gateway_display_name: item.payment_gateways?.display_name,
+      gateway_name: (item.payment_gateways as Record<string, string>)?.name,
+      gateway_display_name: (item.payment_gateways as Record<string, string>)?.display_name,
     }));
 
-    setPaymentMethods(formatted || []);
+    setPaymentMethods((formatted || []) as PaymentMethod[]);
   };
 
   const loadPendingInvoices = async () => {
@@ -168,40 +168,38 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack }) => {
 
     const { data } = await query;
 
-    const formatted = data?.map((item: any) => ({
+    const formatted = data?.map((item: Record<string, unknown>) => ({
       ...item,
-      invoice_number: item.invoices?.invoice_number,
-      gateway_name: item.payment_gateways?.display_name,
-      company_name: item.companies?.name,
+      invoice_number: (item.invoices as Record<string, string>)?.invoice_number,
+      gateway_name: (item.payment_gateways as Record<string, string>)?.display_name,
+      company_name: (item.companies as Record<string, string>)?.name,
     }));
 
-    setTransactions(formatted || []);
+    setTransactions((formatted || []) as PaymentTransaction[]);
   };
 
   const addPaymentMethod = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     try {
       const gateway = gateways.find((g) => g.id === newMethod.gateway_id);
-      if (!gateway) return;
-
-      let details: any = {};
-
-      if (newMethod.type === 'card') {
-        details = {
-          last4: newMethod.card_number.slice(-4),
-          holder_name: newMethod.card_holder,
-          expiry: newMethod.expiry,
-          brand: 'visa',
-        };
-      } else if (newMethod.type === 'bank_account') {
-        details = {
-          bank_name: newMethod.bank_name,
-          last4: newMethod.account_number.slice(-4),
-          routing_number: newMethod.routing_number,
-        };
+      if (!gateway) {
+        setError('Please select a payment gateway.');
+        return;
       }
 
-      const { error } = await supabase.from('payment_methods').insert([
+      const details: Record<string, string> = {
+        label: newMethod.label || `${newMethod.type} payment`,
+      };
+
+      if (newMethod.type === 'bank_account') {
+        details.bank_name = newMethod.bank_name;
+        details.last4 = newMethod.account_last4;
+      } else if (newMethod.type === 'manual') {
+        details.reference_note = newMethod.reference_note;
+      }
+
+      const { error: insertError } = await supabase.from('payment_methods').insert([
         {
           company_id: profile?.company_id,
           gateway_id: newMethod.gateway_id,
@@ -211,47 +209,35 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack }) => {
         },
       ]);
 
-      if (!error) {
-        setShowAddMethodModal(false);
-        loadPaymentMethods();
-        setNewMethod({
-          gateway_id: '',
-          type: 'card',
-          card_number: '',
-          card_holder: '',
-          expiry: '',
-          cvv: '',
-          bank_name: '',
-          account_number: '',
-          routing_number: '',
-        });
+      if (insertError) {
+        setError('Failed to add payment method. Please try again.');
+        return;
       }
-    } catch (error) {
-      console.error('Error adding payment method:', error);
+
+      setShowAddMethodModal(false);
+      loadPaymentMethods();
+      setNewMethod({
+        gateway_id: '',
+        type: 'bank_account',
+        label: '',
+        bank_name: '',
+        account_last4: '',
+        reference_note: '',
+      });
+    } catch (err) {
+      console.error('Error adding payment method:', err);
+      setError('An unexpected error occurred. Please try again.');
     }
   };
 
-  const processPayment = async (e: React.FormEvent) => {
+  const recordManualPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedInvoice || !selectedPaymentMethod) return;
+    setError('');
 
     try {
       const method = paymentMethods.find((m) => m.id === selectedPaymentMethod);
       if (!method) return;
-
-      const gateway = gateways.find((g) => g.id === method.gateway_id);
-      if (!gateway) return;
-
-      let status = 'processing';
-      let gatewayTransactionId = `${gateway.name.toUpperCase()}-${Date.now()}`;
-      let processedAt = new Date().toISOString();
-
-      if (gateway.name === 'manual') {
-        status = 'pending';
-        processedAt = new Date().toISOString();
-      } else {
-        status = 'completed';
-      }
 
       const { error: txError } = await supabase.from('payment_transactions').insert([
         {
@@ -261,39 +247,29 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack }) => {
           gateway_id: method.gateway_id,
           amount: selectedInvoice.amount,
           currency: 'USD',
-          status,
-          gateway_transaction_id: gatewayTransactionId,
-          processed_at: processedAt,
+          status: 'pending',
+          processed_at: new Date().toISOString(),
         },
       ]);
 
-      if (!txError && status === 'completed') {
-        await supabase
-          .from('invoices')
-          .update({ status: 'paid' })
-          .eq('id', selectedInvoice.id);
-
-        await supabase.from('payments').insert([
-          {
-            invoice_id: selectedInvoice.id,
-            amount: selectedInvoice.amount,
-            payment_method: gateway.display_name,
-            transaction_id: gatewayTransactionId,
-          },
-        ]);
+      if (txError) {
+        setError('Failed to record payment. Please try again.');
+        return;
       }
 
       setShowPaymentModal(false);
       setSelectedInvoice(null);
       setSelectedPaymentMethod('');
       loadData();
-    } catch (error) {
-      console.error('Error processing payment:', error);
+    } catch (err) {
+      console.error('Error recording payment:', err);
+      setError('An unexpected error occurred. Please try again.');
     }
   };
 
   const openPaymentModal = (invoice: Invoice) => {
     setSelectedInvoice(invoice);
+    setError('');
     if (paymentMethods.length > 0) {
       const defaultMethod = paymentMethods.find((m) => m.is_default);
       setSelectedPaymentMethod(defaultMethod?.id || paymentMethods[0].id);
@@ -303,16 +279,16 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack }) => {
 
   const toggleGateway = async (gatewayId: string, isEnabled: boolean) => {
     try {
-      const { error } = await supabase
+      const { error: updateError } = await supabase
         .from('payment_gateways')
         .update({ is_enabled: !isEnabled, updated_at: new Date().toISOString() })
         .eq('id', gatewayId);
 
-      if (!error) {
+      if (!updateError) {
         loadGateways();
       }
-    } catch (error) {
-      console.error('Error toggling gateway:', error);
+    } catch (err) {
+      console.error('Error toggling gateway:', err);
     }
   };
 
@@ -368,6 +344,16 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack }) => {
         )}
       </div>
 
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center space-x-2">
+          <AlertCircle className="h-5 w-5 flex-shrink-0" />
+          <span>{error}</span>
+          <button onClick={() => setError('')} className="ml-auto text-red-500 hover:text-red-700">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
           <div className="flex items-center justify-between">
@@ -401,8 +387,8 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack }) => {
                 $
                 {transactions
                   .filter((t) => t.status === 'completed')
-                  .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0)
-                  .toLocaleString()}
+                  .reduce((sum, t) => sum + Number(t.amount), 0)
+                  .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
             <div className="bg-green-100 p-3 rounded-lg">
@@ -418,7 +404,7 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack }) => {
             <div className="p-6 border-b border-gray-200 flex items-center justify-between">
               <h2 className="text-xl font-bold text-gray-900">Payment Methods</h2>
               <button
-                onClick={() => setShowAddMethodModal(true)}
+                onClick={() => { setShowAddMethodModal(true); setError(''); }}
                 className="flex items-center space-x-1 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <Plus className="h-4 w-4" />
@@ -431,7 +417,7 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack }) => {
                 <Wallet className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <p>No payment methods added</p>
                 <button
-                  onClick={() => setShowAddMethodModal(true)}
+                  onClick={() => { setShowAddMethodModal(true); setError(''); }}
                   className="mt-4 text-blue-600 hover:text-blue-700 font-medium"
                 >
                   Add your first payment method
@@ -446,16 +432,20 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack }) => {
                   >
                     <div className="flex items-center space-x-3">
                       <div className="bg-blue-100 p-2 rounded-lg">
-                        <CreditCard className="h-5 w-5 text-blue-600" />
+                        {method.type === 'bank_account' ? (
+                          <Building2 className="h-5 w-5 text-blue-600" />
+                        ) : (
+                          <CreditCard className="h-5 w-5 text-blue-600" />
+                        )}
                       </div>
                       <div>
                         <p className="font-medium text-gray-900">
-                          {method.gateway_display_name} - {method.type}
+                          {method.details.label || method.gateway_display_name}
                         </p>
                         <p className="text-sm text-gray-500">
-                          {method.type === 'card'
-                            ? `**** **** **** ${method.details.last4}`
-                            : `${method.details.bank_name} ****${method.details.last4}`}
+                          {method.type === 'bank_account'
+                            ? `${method.details.bank_name || 'Bank'} ${method.details.last4 ? `****${method.details.last4}` : ''}`
+                            : method.gateway_display_name}
                         </p>
                       </div>
                     </div>
@@ -496,14 +486,14 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack }) => {
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-gray-900">
-                        ${parseFloat(invoice.amount.toString()).toLocaleString()}
+                        ${Number(invoice.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                       <button
                         onClick={() => openPaymentModal(invoice)}
                         disabled={paymentMethods.length === 0}
                         className="mt-1 text-blue-600 hover:text-blue-700 text-sm font-medium disabled:text-gray-400 disabled:cursor-not-allowed"
                       >
-                        Pay Now
+                        Record Payment
                       </button>
                     </div>
                   </div>
@@ -559,7 +549,7 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack }) => {
                 transactions.map((tx) => (
                   <tr key={tx.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm font-mono text-gray-900">
-                      {tx.gateway_transaction_id?.slice(0, 16) || 'N/A'}
+                      {tx.gateway_transaction_id?.slice(0, 16) || tx.id.slice(0, 8)}
                     </td>
                     {profile?.role === 'super_admin' && (
                       <td className="px-6 py-4 text-sm text-gray-900">{tx.company_name || 'N/A'}</td>
@@ -567,7 +557,7 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack }) => {
                     <td className="px-6 py-4 text-sm text-gray-900">{tx.invoice_number}</td>
                     <td className="px-6 py-4 text-sm text-gray-900">{tx.gateway_name}</td>
                     <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                      ${parseFloat(tx.amount.toString()).toLocaleString()}
+                      ${Number(tx.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                     <td className="px-6 py-4">
                       <span
@@ -603,6 +593,15 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack }) => {
               </button>
             </div>
 
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start space-x-2">
+                <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-blue-800">
+                  Add your bank account or manual payment details for recording payments against invoices. An admin will verify and confirm each payment.
+                </p>
+              </div>
+            </div>
+
             <form onSubmit={addPaymentMethod} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -631,69 +630,23 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack }) => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   required
                 >
-                  <option value="card">Credit/Debit Card</option>
-                  <option value="bank_account">Bank Account</option>
+                  <option value="bank_account">Bank Account / EFT</option>
+                  <option value="manual">Manual / Cash / Check</option>
                 </select>
               </div>
 
-              {newMethod.type === 'card' ? (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Card Holder Name
-                    </label>
-                    <input
-                      type="text"
-                      value={newMethod.card_holder}
-                      onChange={(e) => setNewMethod({ ...newMethod, card_holder: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Card Number
-                    </label>
-                    <input
-                      type="text"
-                      value={newMethod.card_number}
-                      onChange={(e) => setNewMethod({ ...newMethod, card_number: e.target.value })}
-                      placeholder="1234 5678 9012 3456"
-                      maxLength={19}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Expiry
-                      </label>
-                      <input
-                        type="text"
-                        value={newMethod.expiry}
-                        onChange={(e) => setNewMethod({ ...newMethod, expiry: e.target.value })}
-                        placeholder="MM/YY"
-                        maxLength={5}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">CVV</label>
-                      <input
-                        type="text"
-                        value={newMethod.cvv}
-                        onChange={(e) => setNewMethod({ ...newMethod, cvv: e.target.value })}
-                        placeholder="123"
-                        maxLength={4}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        required
-                      />
-                    </div>
-                  </div>
-                </>
-              ) : (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Label</label>
+                <input
+                  type="text"
+                  value={newMethod.label}
+                  onChange={(e) => setNewMethod({ ...newMethod, label: e.target.value })}
+                  placeholder="e.g. Company Bank Account"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {newMethod.type === 'bank_account' ? (
                 <>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -709,33 +662,35 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack }) => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Account Number
+                      Last 4 Digits of Account
                     </label>
                     <input
                       type="text"
-                      value={newMethod.account_number}
-                      onChange={(e) =>
-                        setNewMethod({ ...newMethod, account_number: e.target.value })
-                      }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Routing Number
-                    </label>
-                    <input
-                      type="text"
-                      value={newMethod.routing_number}
-                      onChange={(e) =>
-                        setNewMethod({ ...newMethod, routing_number: e.target.value })
-                      }
+                      value={newMethod.account_last4}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                        setNewMethod({ ...newMethod, account_last4: val });
+                      }}
+                      placeholder="1234"
+                      maxLength={4}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       required
                     />
                   </div>
                 </>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Reference Note
+                  </label>
+                  <input
+                    type="text"
+                    value={newMethod.reference_note}
+                    onChange={(e) => setNewMethod({ ...newMethod, reference_note: e.target.value })}
+                    placeholder="e.g. Cash payment, Check #1234"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
               )}
 
               <div className="flex space-x-3 pt-4">
@@ -762,7 +717,7 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack }) => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 my-8">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Process Payment</h2>
+              <h2 className="text-2xl font-bold text-gray-900">Record Payment</h2>
               <button
                 onClick={() => {
                   setShowPaymentModal(false);
@@ -782,12 +737,21 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack }) => {
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Amount:</span>
                 <span className="text-xl font-bold text-gray-900">
-                  ${parseFloat(selectedInvoice.amount.toString()).toLocaleString()}
+                  ${Number(selectedInvoice.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
             </div>
 
-            <form onSubmit={processPayment} className="space-y-4">
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-start space-x-2">
+                <Info className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-yellow-800">
+                  This records a payment notification. An administrator will verify and confirm the payment before marking the invoice as paid.
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={recordManualPayment} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Payment Method
@@ -800,17 +764,10 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack }) => {
                 >
                   {paymentMethods.map((method) => (
                     <option key={method.id} value={method.id}>
-                      {method.gateway_display_name} - {method.type === 'card' ? '****' : ''}
-                      {method.details.last4}
+                      {method.details.label || method.gateway_display_name} {method.details.last4 ? `****${method.details.last4}` : ''}
                     </option>
                   ))}
                 </select>
-              </div>
-
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm text-blue-800">
-                  Your payment will be processed securely through the selected payment gateway.
-                </p>
               </div>
 
               <div className="flex space-x-3 pt-4">
@@ -828,7 +785,7 @@ export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack }) => {
                   type="submit"
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  Pay Now
+                  Record Payment
                 </button>
               </div>
             </form>

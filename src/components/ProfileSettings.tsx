@@ -80,19 +80,39 @@ export const ProfileSettings: React.FC = () => {
     setError('');
     setMessage('');
 
+    if (!passwordData.currentPassword) {
+      setError('Current password is required');
+      setLoading(false);
+      return;
+    }
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setError('New passwords do not match');
       setLoading(false);
       return;
     }
 
-    if (passwordData.newPassword.length < 6) {
-      setError('Password must be at least 6 characters');
+    if (passwordData.newPassword.length < 8) {
+      setError('Password must be at least 8 characters');
       setLoading(false);
       return;
     }
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) throw new Error('Unable to verify identity');
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: passwordData.currentPassword,
+      });
+
+      if (signInError) {
+        setError('Current password is incorrect');
+        setLoading(false);
+        return;
+      }
+
       const { error: updateError } = await supabase.auth.updateUser({
         password: passwordData.newPassword
       });
@@ -235,6 +255,20 @@ export const ProfileSettings: React.FC = () => {
         <form onSubmit={handlePasswordChange} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
+              Current Password
+            </label>
+            <input
+              type="password"
+              value={passwordData.currentPassword}
+              onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               New Password
             </label>
             <input
@@ -243,10 +277,10 @@ export const ProfileSettings: React.FC = () => {
               onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               placeholder="••••••••"
-              minLength={6}
+              minLength={8}
               required
             />
-            <p className="text-xs text-gray-500 mt-1">Must be at least 6 characters</p>
+            <p className="text-xs text-gray-500 mt-1">Must be at least 8 characters</p>
           </div>
 
           <div>
@@ -259,7 +293,7 @@ export const ProfileSettings: React.FC = () => {
               onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               placeholder="••••••••"
-              minLength={6}
+              minLength={8}
               required
             />
           </div>

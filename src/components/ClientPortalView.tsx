@@ -113,9 +113,11 @@ export const ClientPortalView: React.FC<ClientPortalViewProps> = ({ onBack }) =>
             id,
             checked_in_at,
             notes,
+            site_id,
             checkpoints(name),
             profiles(full_name)
           `)
+          .in('site_id', siteIds)
           .order('checked_in_at', { ascending: false })
           .limit(20);
 
@@ -133,6 +135,7 @@ export const ClientPortalView: React.FC<ClientPortalViewProps> = ({ onBack }) =>
         const { count: todayCheckInsCount } = await supabase
           .from('check_ins')
           .select('id', { count: 'exact', head: true })
+          .in('site_id', siteIds)
           .gte('checked_in_at', today.toISOString());
 
         setStats({
