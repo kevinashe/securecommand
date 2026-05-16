@@ -1,50 +1,57 @@
-console.log('[APP] App.tsx module loading...');
-
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { OfflineProvider } from './contexts/OfflineContext';
 import { LoginPage } from './components/LoginPage';
 import { Layout } from './components/Layout';
 import { Dashboard } from './components/Dashboard';
-import { ShiftsView } from './components/ShiftsView';
-import { IncidentsView } from './components/IncidentsView';
-import { SOSView } from './components/SOSView';
-import { MessagesView } from './components/MessagesView';
-import { CompaniesView } from './components/CompaniesView';
-import { BillingView } from './components/BillingView';
-import { SitesView } from './components/SitesView';
-import { GuardsView } from './components/GuardsView';
-import { EquipmentView } from './components/EquipmentView';
-import { PatrolView } from './components/PatrolView';
-import { CheckInView } from './components/CheckInView';
-import { TrackingView } from './components/TrackingView';
-import { PaymentsView } from './components/PaymentsView';
-import { CompanySettings } from './components/CompanySettings';
-import { NotificationsView } from './components/NotificationsView';
-import { AnalyticsView } from './components/AnalyticsView';
-import { AssignmentHistoryView } from './components/AssignmentHistoryView';
-import { PricingPlansView } from './components/PricingPlansView';
-import { LeadsView } from './components/LeadsView';
-import { SystemSettings } from './components/SystemSettings';
-import { WebsiteCMSSettings } from './components/WebsiteCMSSettings';
-import { ClientPortalView } from './components/ClientPortalView';
 import { ToastContainer } from './components/ToastContainer';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { CompanySignup } from './components/CompanySignup';
+import { PasswordReset } from './components/PasswordReset';
 import { MarketingLayout } from './components/marketing/MarketingLayout';
 import { LandingPage } from './components/marketing/LandingPage';
 import { ProductsPage } from './components/marketing/ProductsPage';
 import { PricingPage } from './components/marketing/PricingPage';
 import { ContactPage } from './components/marketing/ContactPage';
-import { CompanySignup } from './components/CompanySignup';
-import { PasswordReset } from './components/PasswordReset';
-import { AdvancedScheduling } from './components/AdvancedScheduling';
-import { TimeAttendance } from './components/TimeAttendance';
-import { InvoicingView } from './components/InvoicingView';
-import BusManagementView from './components/BusManagementView';
-import BusCheckInView from './components/BusCheckInView';
-import BusTrackingView from './components/BusTrackingView';
+
+const ShiftsView = React.lazy(() => import('./components/ShiftsView').then(m => ({ default: m.ShiftsView })));
+const IncidentsView = React.lazy(() => import('./components/IncidentsView').then(m => ({ default: m.IncidentsView })));
+const SOSView = React.lazy(() => import('./components/SOSView').then(m => ({ default: m.SOSView })));
+const MessagesView = React.lazy(() => import('./components/MessagesView').then(m => ({ default: m.MessagesView })));
+const CompaniesView = React.lazy(() => import('./components/CompaniesView').then(m => ({ default: m.CompaniesView })));
+const BillingView = React.lazy(() => import('./components/BillingView').then(m => ({ default: m.BillingView })));
+const SitesView = React.lazy(() => import('./components/SitesView').then(m => ({ default: m.SitesView })));
+const GuardsView = React.lazy(() => import('./components/GuardsView').then(m => ({ default: m.GuardsView })));
+const EquipmentView = React.lazy(() => import('./components/EquipmentView').then(m => ({ default: m.EquipmentView })));
+const PatrolView = React.lazy(() => import('./components/PatrolView').then(m => ({ default: m.PatrolView })));
+const CheckInView = React.lazy(() => import('./components/CheckInView').then(m => ({ default: m.CheckInView })));
+const TrackingView = React.lazy(() => import('./components/TrackingView').then(m => ({ default: m.TrackingView })));
+const PaymentsView = React.lazy(() => import('./components/PaymentsView').then(m => ({ default: m.PaymentsView })));
+const CompanySettings = React.lazy(() => import('./components/CompanySettings').then(m => ({ default: m.CompanySettings })));
+const NotificationsView = React.lazy(() => import('./components/NotificationsView').then(m => ({ default: m.NotificationsView })));
+const AnalyticsView = React.lazy(() => import('./components/AnalyticsView').then(m => ({ default: m.AnalyticsView })));
+const AssignmentHistoryView = React.lazy(() => import('./components/AssignmentHistoryView').then(m => ({ default: m.AssignmentHistoryView })));
+const PricingPlansView = React.lazy(() => import('./components/PricingPlansView').then(m => ({ default: m.PricingPlansView })));
+const LeadsView = React.lazy(() => import('./components/LeadsView').then(m => ({ default: m.LeadsView })));
+const SystemSettings = React.lazy(() => import('./components/SystemSettings').then(m => ({ default: m.SystemSettings })));
+const WebsiteCMSSettings = React.lazy(() => import('./components/WebsiteCMSSettings').then(m => ({ default: m.WebsiteCMSSettings })));
+const ClientPortalView = React.lazy(() => import('./components/ClientPortalView').then(m => ({ default: m.ClientPortalView })));
+const AdvancedScheduling = React.lazy(() => import('./components/AdvancedScheduling').then(m => ({ default: m.AdvancedScheduling })));
+const TimeAttendance = React.lazy(() => import('./components/TimeAttendance').then(m => ({ default: m.TimeAttendance })));
+const InvoicingView = React.lazy(() => import('./components/InvoicingView').then(m => ({ default: m.InvoicingView })));
+const BusManagementView = React.lazy(() => import('./components/BusManagementView'));
+const BusCheckInView = React.lazy(() => import('./components/BusCheckInView'));
+const BusTrackingView = React.lazy(() => import('./components/BusTrackingView'));
+const ProfileSettings = React.lazy(() => import('./components/ProfileSettings').then(m => ({ default: m.ProfileSettings })));
+const SuperAdminDashboard = React.lazy(() => import('./components/SuperAdminDashboard').then(m => ({ default: m.SuperAdminDashboard })));
+
+const ViewSpinner = () => (
+  <div className="flex items-center justify-center h-64">
+    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+  </div>
+);
 
 const AppContent: React.FC = () => {
-  console.log('[APP] AppContent component rendering');
   const { user, profile, loading } = useAuth();
   const [currentView, setCurrentView] = useState('dashboard');
 
@@ -131,7 +138,11 @@ const AppContent: React.FC = () => {
 
   return (
     <Layout currentView={currentView} onViewChange={setCurrentView}>
-      {renderView()}
+      <ErrorBoundary>
+        <Suspense fallback={<ViewSpinner />}>
+          {renderView()}
+        </Suspense>
+      </ErrorBoundary>
     </Layout>
   );
 };
@@ -200,33 +211,16 @@ const RootApp: React.FC = () => {
 };
 
 function App() {
-  console.log('App component rendering');
-  try {
-    return (
+  return (
+    <ErrorBoundary fallbackTitle="Application Error">
       <AuthProvider>
         <OfflineProvider>
           <ToastContainer />
           <RootApp />
         </OfflineProvider>
       </AuthProvider>
-    );
-  } catch (error) {
-    console.error('Error in App component:', error);
-    return (
-      <div className="min-h-screen bg-red-50 flex items-center justify-center">
-        <div className="text-center p-8 bg-white rounded-lg shadow-lg">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">Application Error</h1>
-          <p className="text-gray-700 mb-4">Failed to load the application. Please check the console for details.</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Reload Page
-          </button>
-        </div>
-      </div>
-    );
-  }
+    </ErrorBoundary>
+  );
 }
 
 export default App;

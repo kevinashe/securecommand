@@ -3,6 +3,7 @@ import { Bus, Camera, CheckCircle, Clock, LogOut, MapPin, ArrowLeft } from 'luci
 import jsQR from 'jsqr';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { showToast } from '../lib/toast';
 
 interface CompanyBus {
   id: string;
@@ -200,7 +201,7 @@ export default function BusCheckInView({ onBack }: BusCheckInViewProps) {
           location_lat = position.coords.latitude;
           location_lng = position.coords.longitude;
         } catch (err) {
-          console.log('Location access denied');
+          // Location access denied, continue without coordinates
         }
       }
 
@@ -219,7 +220,7 @@ export default function BusCheckInView({ onBack }: BusCheckInViewProps) {
       setManualCode('');
       await fetchCurrentCheckIn();
       await fetchRecentCheckIns();
-      alert(`Successfully checked in to Bus ${bus.bus_number}`);
+      showToast('success', `Successfully checked in to Bus ${bus.bus_number}`);
     } catch (error: any) {
       setError('Error checking in: ' + error.message);
     }
@@ -238,7 +239,7 @@ export default function BusCheckInView({ onBack }: BusCheckInViewProps) {
 
       setCurrentCheckIn(null);
       await fetchRecentCheckIns();
-      alert('Successfully checked out');
+      showToast('success', 'Successfully checked out');
     } catch (error: any) {
       setError('Error checking out: ' + error.message);
     }

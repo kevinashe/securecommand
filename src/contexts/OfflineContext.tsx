@@ -13,7 +13,6 @@ interface OfflineContextType {
 const OfflineContext = createContext<OfflineContextType | undefined>(undefined);
 
 export const OfflineProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  console.log('OfflineProvider rendering');
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [queuedActionsCount, setQueuedActionsCount] = useState(0);
   const { profile } = useAuth();

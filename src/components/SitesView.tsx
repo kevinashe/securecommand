@@ -279,9 +279,16 @@ export const SitesView: React.FC<SitesViewProps> = ({ onBack }) => {
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qrData)}`;
 
     try {
-      const response = await fetch(qrUrl);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      const response = await fetch(qrUrl, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      if (!response.ok) throw new Error('QR service returned an error');
+
       const blob = await response.blob();
-      const img = new Image();
+      const img = new window.Image();
 
       img.onload = () => {
         const canvas = document.createElement('canvas');
@@ -304,13 +311,17 @@ export const SitesView: React.FC<SitesViewProps> = ({ onBack }) => {
           const finalUrl = canvas.toDataURL('image/png');
           setQrCodeUrl(finalUrl);
         }
+        URL.revokeObjectURL(img.src);
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(img.src);
+        showToast('error', 'Failed to render QR code image');
       };
 
       img.src = URL.createObjectURL(blob);
     } catch (error) {
-      console.error('Error generating QR code:', error);
-      showToast('error', 'Failed to generate QR code');
-      setQrCodeUrl(qrUrl);
+      showToast('error', 'Failed to generate QR code. Please try again.');
     }
   };
 

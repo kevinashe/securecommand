@@ -10,11 +10,7 @@ export const PasswordReset: React.FC = () => {
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        console.log('Password recovery mode activated');
-      }
-    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {});
 
     return () => subscription.unsubscribe();
   }, []);

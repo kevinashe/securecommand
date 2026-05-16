@@ -50,49 +50,32 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
 
   const loadContent = async () => {
     try {
-      console.log('Loading website content...');
       const { data, error } = await supabase
         .from('website_content')
         .select('*');
 
-      if (error) {
-        console.error('Supabase error loading website content:', error.message, error);
-        return;
-      }
-
-      console.log('Website content loaded:', data?.length, 'items');
+      if (error) return;
 
       if (data && data.length > 0) {
         const parsedContent: any = { hero: {}, features: {} };
 
         data.forEach((item: any) => {
-          // JSONB values from Supabase are already native JS types
-          // No need to parse - they come as strings, arrays, or objects directly
           const value = item.value;
-
           if (item.section === 'hero' || item.section === 'features') {
             parsedContent[item.section][item.key] = value;
           }
         });
 
-        console.log('Parsed content:', parsedContent);
-
-        // Only update if we have content
         if (Object.keys(parsedContent.hero).length > 0 || Object.keys(parsedContent.features).length > 0) {
           setContent(prev => ({
             ...prev,
             hero: { ...prev.hero, ...parsedContent.hero },
             features: { ...prev.features, ...parsedContent.features }
           }));
-          console.log('Content state updated successfully');
-        } else {
-          console.warn('No hero or features content found');
         }
-      } else {
-        console.warn('No website content data returned from database');
       }
     } catch (err: any) {
-      console.error('Exception loading CMS content:', err?.message || err);
+      // CMS content load failure is non-critical; defaults will be used
     }
   };
 

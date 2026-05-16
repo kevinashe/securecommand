@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Company } from '../lib/supabase';
-import { Building, Plus, X, Mail, Phone, MapPin, Edit2, Trash2, Key, Copy, Check, Upload, Image, ArrowLeft } from 'lucide-react';
+import { Building, Plus, X, Mail, Phone, MapPin, CreditCard as Edit2, Trash2, Key, Copy, Check, Upload, Image, ArrowLeft } from 'lucide-react';
+import { showToast } from '../lib/toast';
 
 interface CompaniesViewProps {
   onBack?: () => void;
@@ -53,12 +54,19 @@ export const CompaniesView: React.FC<CompaniesViewProps> = ({ onBack }) => {
     e.preventDefault();
 
     try {
-      // Generate unique company code
       let companyCode = '';
       let isUnique = false;
+      const maxAttempts = 20;
+      let attempts = 0;
 
       while (!isUnique) {
-        companyCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        if (attempts >= maxAttempts) {
+          showToast('error', 'Unable to generate a unique company code. Please try again.');
+          return;
+        }
+        const bytes = crypto.getRandomValues(new Uint8Array(4));
+        companyCode = Array.from(bytes, b => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[b % 36]).join('') +
+          Array.from(crypto.getRandomValues(new Uint8Array(2)), b => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[b % 36]).join('');
         const { data } = await supabase
           .from('companies')
           .select('id')
@@ -66,6 +74,7 @@ export const CompaniesView: React.FC<CompaniesViewProps> = ({ onBack }) => {
           .maybeSingle();
 
         if (!data) isUnique = true;
+        attempts++;
       }
 
       const { data: newCompany, error } = await supabase.from('companies').insert([
@@ -87,10 +96,11 @@ export const CompaniesView: React.FC<CompaniesViewProps> = ({ onBack }) => {
           logo_url: '',
         });
         loadCompanies();
-        alert(`Company created successfully!\n\nCompany Code: ${companyCode}\n\nShare this code with employees for login.`);
+        showToast('success', `Company created! Code: ${companyCode}. Share this with employees for login.`);
       }
     } catch (error) {
       console.error('Error creating company:', error);
+      showToast('error', 'Failed to create company');
     }
   };
 
@@ -148,12 +158,12 @@ export const CompaniesView: React.FC<CompaniesViewProps> = ({ onBack }) => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file');
+      showToast('error', 'Please upload an image file');
       return;
     }
 
     if (file.size > 2 * 1024 * 1024) {
-      alert('Image size should be less than 2MB');
+      showToast('error', 'Image size should be less than 2MB');
       return;
     }
 
@@ -215,13 +225,13 @@ export const CompaniesView: React.FC<CompaniesViewProps> = ({ onBack }) => {
         setShowDeleteModal(false);
         setCompanyToDelete(null);
         loadCompanies();
-        alert('Company deleted successfully');
+        showToast('success', 'Company deleted successfully');
       } else {
-        alert('Error deleting company. Please try again.');
+        showToast('error', 'Error deleting company. Please try again.');
       }
     } catch (error) {
       console.error('Error deleting company:', error);
-      alert('Error deleting company. Please try again.');
+      showToast('error', 'Error deleting company. Please try again.');
     }
   };
 

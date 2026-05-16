@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Bus, Plus, Edit2, Trash2, QrCode, X, MapPin, ArrowLeft } from 'lucide-react';
+import { Bus, Plus, CreditCard as Edit2, Trash2, QrCode, X, MapPin, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { showToast } from '../lib/toast';
 
 interface CompanyBus {
   id: string;
@@ -92,7 +93,7 @@ export default function BusManagementView({ onBack }: BusManagementViewProps) {
       resetForm();
       fetchBuses();
     } catch (error: any) {
-      alert('Error saving bus: ' + error.message);
+      showToast('error', 'Error saving bus: ' + error.message);
     }
   };
 
@@ -108,7 +109,7 @@ export default function BusManagementView({ onBack }: BusManagementViewProps) {
       if (error) throw error;
       fetchBuses();
     } catch (error: any) {
-      alert('Error deleting bus: ' + error.message);
+      showToast('error', 'Error deleting bus: ' + error.message);
     }
   };
 

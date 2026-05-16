@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Send, Users, User, X, MessageCircle, ArrowLeft } from 'lucide-react';
+import { showToast } from '../lib/toast';
 
 interface ChatMessage {
   id: string;
@@ -97,9 +98,6 @@ export const LiveChat: React.FC<LiveChatProps> = ({ onBack }) => {
 
   const loadMessages = async () => {
     try {
-      console.log('Loading messages for company:', profile?.company_id);
-      console.log('Current user ID:', profile?.id);
-
       const { data: messagesData, error } = await supabase
         .from('chat_messages')
         .select('*')
@@ -107,13 +105,9 @@ export const LiveChat: React.FC<LiveChatProps> = ({ onBack }) => {
         .order('created_at', { ascending: true });
 
       if (error) {
-        console.error('Supabase error loading messages:', error);
-        alert(`Error loading messages: ${error.message}`);
+        showToast('error', 'Failed to load messages');
         throw error;
       }
-
-      console.log('Loaded messages count:', messagesData?.length);
-      console.log('Loaded messages:', messagesData);
 
       if (!messagesData || messagesData.length === 0) {
         setMessages([]);
@@ -133,10 +127,9 @@ export const LiveChat: React.FC<LiveChatProps> = ({ onBack }) => {
         sender: profileMap.get(item.sender_id)
       }));
 
-      console.log('Setting messages state with:', formattedData.length, 'messages');
       setMessages(formattedData);
     } catch (error) {
-      console.error('Catch block - Error loading messages:', error);
+      console.error('Error loading messages:', error);
     }
   };
 
@@ -179,7 +172,7 @@ export const LiveChat: React.FC<LiveChatProps> = ({ onBack }) => {
       loadMessages();
     } catch (error) {
       console.error('Error sending message:', error);
-      alert('Failed to send message. Please try again.');
+      showToast('error', 'Failed to send message. Please try again.');
     } finally {
       setSending(false);
     }
@@ -190,21 +183,11 @@ export const LiveChat: React.FC<LiveChatProps> = ({ onBack }) => {
       return messages.filter(m => m.recipient_id === null);
     }
 
-    const filtered = messages.filter(
+    return messages.filter(
       m =>
         (m.sender_id === profile?.id && m.recipient_id === selectedUser) ||
         (m.sender_id === selectedUser && m.recipient_id === profile?.id)
     );
-
-    console.log('Filtering messages:', {
-      totalMessages: messages.length,
-      selectedUser,
-      currentUserId: profile?.id,
-      filteredCount: filtered.length,
-      filtered
-    });
-
-    return filtered;
   };
 
   const getUnreadCount = (userId: string) => {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { MapPin, User, Battery, Clock, Activity, Navigation, ArrowLeft } from 'lucide-react';
+import { showToast } from '../lib/toast';
 
 interface LocationData {
   id: string;
@@ -84,7 +85,7 @@ export const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ onBack }) => {
 
   const startTracking = () => {
     if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser');
+      showToast('error', 'Geolocation is not supported by your browser');
       return;
     }
 
@@ -125,7 +126,7 @@ export const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ onBack }) => {
       },
       (error) => {
         console.error('Error getting location:', error);
-        alert('Unable to get your location. Please check your permissions.');
+        showToast('error', 'Unable to get your location. Please check your permissions.');
       },
       {
         enableHighAccuracy: true,

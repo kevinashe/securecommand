@@ -225,10 +225,10 @@ export const AdvancedScheduling: React.FC<AdvancedSchedulingProps> = ({ onBack }
         }
       }
 
-      alert('Shifts auto-assigned successfully!');
+      showToast('success', 'Shifts auto-assigned successfully!');
     } catch (error) {
       console.error('Error auto-assigning shifts:', error);
-      alert('Error auto-assigning shifts. Please try again.');
+      showToast('error', 'Error auto-assigning shifts. Please try again.');
     } finally {
       setAutoAssigning(false);
     }
@@ -259,7 +259,7 @@ export const AdvancedScheduling: React.FC<AdvancedSchedulingProps> = ({ onBack }
       loadData();
     } catch (error) {
       console.error('Error creating template:', error);
-      alert('Error creating template');
+      showToast('error', 'Error creating template');
     }
   };
 

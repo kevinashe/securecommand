@@ -13,7 +13,6 @@ class SyncManager {
     }, intervalMs);
 
     window.addEventListener('online', () => {
-      console.log('Back online - syncing queued actions');
       this.syncQueuedActions();
     });
   }
@@ -37,13 +36,11 @@ class SyncManager {
         try {
           await this.processAction(action);
           await offlineStorage.removeQueuedAction(action.id);
-          console.log(`Synced action ${action.type}:`, action.id);
         } catch (error) {
           console.error(`Failed to sync action ${action.id}:`, error);
 
           action.retryCount++;
           if (action.retryCount > 5) {
-            console.error(`Action ${action.id} exceeded retry limit, removing from queue`);
             await offlineStorage.removeQueuedAction(action.id);
           } else {
             await offlineStorage.updateQueuedAction(action);
@@ -83,7 +80,7 @@ class SyncManager {
         break;
 
       default:
-        console.warn(`Unknown action type: ${action.type}`);
+        break;
     }
   }
 
@@ -112,9 +109,8 @@ class SyncManager {
       if (checkpointsRes.data) await offlineStorage.saveData('checkpoints', checkpointsRes.data);
       if (guardsRes.data) await offlineStorage.saveData('guards', guardsRes.data);
 
-      console.log('Essential data cached for offline use');
     } catch (error) {
-      console.error('Error caching essential data:', error);
+      // Offline caching is best-effort
     }
   }
 }

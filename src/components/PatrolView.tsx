@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { MapPin, Plus, Edit, Trash2, X, QrCode, Clock, Download, ArrowLeft } from 'lucide-react';
+import { MapPin, Plus, CreditCard as Edit, Trash2, X, QrCode, Clock, Download, ArrowLeft } from 'lucide-react';
+import { showToast } from '../lib/toast';
 
 interface PatrolRoute {
   id: string;
@@ -172,13 +173,13 @@ export const PatrolView: React.FC<PatrolViewProps> = ({ onBack }) => {
       loadRoutes();
     } catch (error) {
       console.error('Error creating route:', error);
-      alert('Failed to create route. Please try again.');
+      showToast('error', 'Failed to create route. Please try again.');
     }
   };
 
   const addDraftCheckpoint = () => {
     if (!checkpointFormData.name || !checkpointFormData.description) {
-      alert('Please fill in checkpoint name and description');
+      showToast('warning', 'Please fill in checkpoint name and description');
       return;
     }
 
@@ -219,7 +220,7 @@ export const PatrolView: React.FC<PatrolViewProps> = ({ onBack }) => {
       }
     } catch (error) {
       console.error('Error updating checkpoint:', error);
-      alert('Failed to update checkpoint. Please try again.');
+      showToast('error', 'Failed to update checkpoint. Please try again.');
     }
   };
 

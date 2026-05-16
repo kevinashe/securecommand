@@ -117,7 +117,7 @@ export const BillingView: React.FC<BillingViewProps> = ({ onBack }) => {
             const guards = guardCount || 0;
             const licenseFee = company.custom_license_fee ?? pricingConfig.license_fee;
             const monthlyPerGuard = company.custom_per_guard_fee ?? pricingConfig.monthly_per_guard;
-            const totalMonthly = licenseFee + (guards * monthlyPerGuard);
+            const totalMonthly = Math.round((licenseFee + (guards * monthlyPerGuard)) * 100) / 100;
 
             return {
               ...company,

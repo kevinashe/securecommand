@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { QrCode, CheckCircle, MapPin, Clock, Camera, X, ArrowLeft } from 'lucide-react';
+import { showToast } from '../lib/toast';
 import jsQR from 'jsqr';
 
 interface Checkpoint {
@@ -107,14 +108,10 @@ export const CheckInView: React.FC<CheckInViewProps> = ({ onBack }) => {
 
   const startCamera = async () => {
     try {
-      console.log('Starting camera...');
-
-      // Check if mediaDevices is available
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error('Camera API not supported. Please use HTTPS or localhost.');
       }
 
-      console.log('Requesting camera permission...');
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: 'user',
@@ -124,58 +121,30 @@ export const CheckInView: React.FC<CheckInViewProps> = ({ onBack }) => {
         audio: false,
       });
 
-      console.log('Camera stream obtained:', stream.getVideoTracks().length, 'video tracks');
-
-      // Check if video track is active
-      const videoTrack = stream.getVideoTracks()[0];
-      console.log('Video track enabled:', videoTrack.enabled);
-      console.log('Video track ready state:', videoTrack.readyState);
-      console.log('Video track settings:', videoTrack.getSettings());
-
       streamRef.current = stream;
       setShowCamera(true);
 
-      // Use requestAnimationFrame for better timing
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          console.log('Attempting to attach stream to video element...');
-          console.log('Video element exists:', !!videoRef.current);
-          console.log('Stream exists:', !!streamRef.current);
-
           if (videoRef.current && streamRef.current) {
-            // Set srcObject directly
             videoRef.current.srcObject = streamRef.current;
             videoRef.current.muted = true;
             videoRef.current.playsInline = true;
 
-            console.log('Stream attached to video element');
-            console.log('Video paused:', videoRef.current.paused);
-            console.log('Video readyState:', videoRef.current.readyState);
-
-            // Force play
             const playPromise = videoRef.current.play();
 
             if (playPromise !== undefined) {
-              playPromise
-                .then(() => {
-                  console.log('Video playing successfully');
-                  console.log('Video dimensions:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight);
-                })
-                .catch((e) => {
-                  console.error('Error playing video:', e);
-                  alert('Error starting camera preview: ' + e.message);
-                });
+              playPromise.catch((e) => {
+                showToast('error', 'Error starting camera preview: ' + e.message);
+              });
             }
           } else {
-            console.error('Video element or stream missing');
-            alert('Failed to initialize video element');
+            showToast('error', 'Failed to initialize video element');
           }
         });
       });
 
     } catch (error: any) {
-      console.error('Error accessing camera:', error);
-
       let errorMessage = 'Unable to access camera. ';
       if (error.name === 'NotAllowedError') {
         errorMessage += 'Please grant camera permissions and try again.';
@@ -189,7 +158,7 @@ export const CheckInView: React.FC<CheckInViewProps> = ({ onBack }) => {
         errorMessage += 'Please check your browser settings.';
       }
 
-      alert(errorMessage);
+      showToast('error', errorMessage);
       setShowCamera(false);
     }
   };
@@ -249,8 +218,7 @@ export const CheckInView: React.FC<CheckInViewProps> = ({ onBack }) => {
         });
       });
     } catch (error: any) {
-      console.error('Error accessing camera for QR scanning:', error);
-      alert('Unable to access camera for QR scanning. Please check permissions.');
+      showToast('error', 'Unable to access camera for QR scanning. Please check permissions.');
     }
   };
 
@@ -446,10 +414,7 @@ export const CheckInView: React.FC<CheckInViewProps> = ({ onBack }) => {
 
         {!showCamera && !capturedPhoto && (
           <button
-            onClick={() => {
-              console.log('Open Camera button clicked');
-              startCamera();
-            }}
+            onClick={() => startCamera()}
             className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <Camera className="h-5 w-5" />

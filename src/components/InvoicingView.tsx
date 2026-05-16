@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { FileText, Plus, DollarSign, Calendar, CheckCircle, Clock, Send, X, Download, ArrowLeft } from 'lucide-react';
+import { showToast } from '../lib/toast';
 
 interface Invoice {
   id: string;
@@ -72,7 +73,7 @@ export const InvoicingView: React.FC<InvoicingViewProps> = ({ onBack }) => {
         .lte('end_time', formData.billing_period_end);
 
       if (!shifts || shifts.length === 0) {
-        alert('No completed shifts found for the selected period');
+        showToast('warning', 'No completed shifts found for the selected period');
         return;
       }
 
@@ -110,17 +111,17 @@ export const InvoicingView: React.FC<InvoicingViewProps> = ({ onBack }) => {
         return {
           invoice_id: invoice.id,
           description: `Security services - ${shift.sites?.name} - ${shift.profiles?.full_name}`,
-          quantity: hours,
+          quantity: Math.round(hours * 100) / 100,
           unit_price: defaultRate,
-          amount: amount,
+          amount: Math.round(amount * 100) / 100,
           shift_id: shift.id,
         };
       });
 
       await supabase.from('invoice_items').insert(items);
 
-      const subtotal = items.reduce((sum, item) => sum + item.amount, 0);
-      const taxAmount = subtotal * (formData.tax_rate / 100);
+      const subtotal = Math.round(items.reduce((sum, item) => sum + item.amount, 0) * 100) / 100;
+      const taxAmount = Math.round(subtotal * (formData.tax_rate / 100) * 100) / 100;
 
       await supabase
         .from('invoices')
@@ -138,10 +139,10 @@ export const InvoicingView: React.FC<InvoicingViewProps> = ({ onBack }) => {
         notes: '',
       });
       loadInvoices();
-      alert('Invoice generated successfully!');
+      showToast('success', 'Invoice generated successfully!');
     } catch (error) {
       console.error('Error generating invoice:', error);
-      alert('Error generating invoice. Please try again.');
+      showToast('error', 'Error generating invoice. Please try again.');
     } finally {
       setGenerating(false);
     }
