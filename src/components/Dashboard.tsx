@@ -123,27 +123,56 @@ export const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
           equipment: equipmentRes.count || 0,
         });
       } else {
-        const [shiftsRes, incidentsRes, clockRes] = await Promise.all([
-          supabase.from('shifts').select('id', { count: 'exact', head: true }).eq('guard_id', profile.id).eq('status', 'active'),
-          supabase.from('incidents').select('id', { count: 'exact', head: true }).eq('reported_by', profile.id),
-          supabase.from('time_clocks').select('id, clock_in_time, shift_id, is_within_geofence')
-            .eq('guard_id', profile.id)
-            .is('clock_out_time', null)
-            .order('clock_in_time', { ascending: false })
-            .limit(1)
-            .maybeSingle(),
-        ]);
+        const officeStaffRoles = ['dispatcher', 'hr_manager', 'finance_officer', 'office_admin'];
+        const isOfficeStaff = officeStaffRoles.includes(profile.role);
 
-        setStats({
-          totalGuards: 0,
-          activeSites: 0,
-          activeShifts: shiftsRes.count || 0,
-          openIncidents: incidentsRes.count || 0,
-          activeSOSAlerts: 0,
-          equipment: 0,
-        });
+        if (isOfficeStaff && profile.company_id) {
+          const [guardsRes, sitesRes, shiftsRes, incidentsRes, clockRes] = await Promise.all([
+            supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('company_id', profile.company_id).eq('role', 'security_officer'),
+            supabase.from('sites').select('id', { count: 'exact', head: true }).eq('company_id', profile.company_id).eq('is_active', true),
+            supabase.from('shifts').select('id, sites!inner(company_id)', { count: 'exact', head: true }).eq('sites.company_id', profile.company_id).eq('status', 'active'),
+            supabase.from('incidents').select('id, sites!inner(company_id)', { count: 'exact', head: true }).eq('sites.company_id', profile.company_id).eq('status', 'open'),
+            supabase.from('time_clocks').select('id, clock_in_time, shift_id, is_within_geofence')
+              .eq('guard_id', profile.id)
+              .is('clock_out_time', null)
+              .order('clock_in_time', { ascending: false })
+              .limit(1)
+              .maybeSingle(),
+          ]);
 
-        setClockEntry(clockRes.data);
+          setStats({
+            totalGuards: guardsRes.count || 0,
+            activeSites: sitesRes.count || 0,
+            activeShifts: shiftsRes.count || 0,
+            openIncidents: incidentsRes.count || 0,
+            activeSOSAlerts: 0,
+            equipment: 0,
+          });
+
+          setClockEntry(clockRes.data);
+        } else {
+          const [shiftsRes, incidentsRes, clockRes] = await Promise.all([
+            supabase.from('shifts').select('id', { count: 'exact', head: true }).eq('guard_id', profile.id).eq('status', 'active'),
+            supabase.from('incidents').select('id', { count: 'exact', head: true }).eq('reported_by', profile.id),
+            supabase.from('time_clocks').select('id, clock_in_time, shift_id, is_within_geofence')
+              .eq('guard_id', profile.id)
+              .is('clock_out_time', null)
+              .order('clock_in_time', { ascending: false })
+              .limit(1)
+              .maybeSingle(),
+          ]);
+
+          setStats({
+            totalGuards: 0,
+            activeSites: 0,
+            activeShifts: shiftsRes.count || 0,
+            openIncidents: incidentsRes.count || 0,
+            activeSOSAlerts: 0,
+            equipment: 0,
+          });
+
+          setClockEntry(clockRes.data);
+        }
       }
 
       if (profile.role !== 'super_admin') {
@@ -157,7 +186,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
 
         const query = profile.role === 'security_officer'
           ? supabase.from('shifts').select('*, sites(name)').eq('guard_id', profile.id)
-          : supabase.from('shifts').select('*, sites(name), profiles!shifts_guard_id_fkey(full_name)');
+          : supabase.from('shifts').select('*, sites!inner(name, company_id), profiles!shifts_guard_id_fkey(full_name)').eq('sites.company_id', profile.company_id!);
 
         const { data: shifts } = await query
           .gte('start_time', new Date().toISOString())

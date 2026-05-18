@@ -150,14 +150,16 @@ export const InvoicingView: React.FC<InvoicingViewProps> = ({ onBack }) => {
 
       const { data: shifts } = await supabase
         .from('shifts')
-        .select('id, start_time, end_time, sites(name), profiles!shifts_guard_id_fkey(full_name)')
-        .eq('status', 'completed')
+        .select('id, start_time, end_time, status, sites!inner(name, company_id), profiles!shifts_guard_id_fkey(full_name)')
+        .eq('sites.company_id', profile!.company_id!)
+        .in('status', ['completed', 'active'])
+        .lte('end_time', formData.billing_period_end)
         .gte('start_time', formData.billing_period_start)
-        .lte('end_time', formData.billing_period_end);
+        .lte('end_time', new Date().toISOString());
 
       if (!shifts || shifts.length === 0) {
         setSitePreviews([]);
-        showToast('warning', 'No completed shifts found for this period');
+        showToast('warning', 'No billable shifts found for this period. Shifts must have ended to be invoiced.');
         return;
       }
 
