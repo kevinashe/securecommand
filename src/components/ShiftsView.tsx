@@ -20,6 +20,19 @@ interface RecurringConfig {
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+function localDateStr(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function localDateTimeStr(d: Date): string {
+  const h = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${localDateStr(d)}T${h}:${min}`;
+}
+
 function generateRecurringShifts(
   config: RecurringConfig,
   siteId: string,
@@ -35,14 +48,14 @@ function generateRecurringShifts(
   while (current <= end) {
     const dayOfWeek = current.getDay();
     if (config.days[dayOfWeek]) {
-      const dateStr = current.toISOString().slice(0, 10);
+      const dateStr = localDateStr(current);
       const startTime = `${dateStr}T${config.shiftStartTime}`;
       let endTime = `${dateStr}T${config.shiftEndTime}`;
 
       if (config.shiftEndTime <= config.shiftStartTime) {
         const nextDay = new Date(current);
         nextDay.setDate(nextDay.getDate() + 1);
-        endTime = `${nextDay.toISOString().slice(0, 10)}T${config.shiftEndTime}`;
+        endTime = `${localDateStr(nextDay)}T${config.shiftEndTime}`;
       }
 
       shifts.push({
@@ -89,7 +102,7 @@ export const ShiftsView: React.FC<ShiftsViewProps> = ({ onBack }) => {
     notes: '',
   });
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = localDateStr(new Date());
 
   const [recurring, setRecurring] = useState<RecurringConfig>({
     enabled: false,
@@ -329,8 +342,8 @@ export const ShiftsView: React.FC<ShiftsViewProps> = ({ onBack }) => {
     setFormData({
       site_id: shift.site_id,
       guard_id: shift.guard_id,
-      start_time: new Date(shift.start_time).toISOString().slice(0, 16),
-      end_time: new Date(shift.end_time).toISOString().slice(0, 16),
+      start_time: localDateTimeStr(new Date(shift.start_time)),
+      end_time: localDateTimeStr(new Date(shift.end_time)),
       notes: shift.notes || '',
     });
     setShowEditModal(true);
@@ -437,7 +450,7 @@ export const ShiftsView: React.FC<ShiftsViewProps> = ({ onBack }) => {
   const openCreateModal = (date?: Date) => {
     resetForm();
     if (date) {
-      const dateStr = date.toISOString().slice(0, 16);
+      const dateStr = localDateTimeStr(date);
       setFormData(prev => ({ ...prev, start_time: dateStr, end_time: dateStr }));
     }
     setShowCreateModal(true);
@@ -469,7 +482,7 @@ export const ShiftsView: React.FC<ShiftsViewProps> = ({ onBack }) => {
     if (!recurring.startDate) return;
     const d = new Date(recurring.startDate + 'T00:00:00');
     d.setDate(d.getDate() + weeks * 7 - 1);
-    setRecurring(prev => ({ ...prev, endDate: d.toISOString().slice(0, 10) }));
+    setRecurring(prev => ({ ...prev, endDate: localDateStr(d) }));
   };
 
   if (loading) {
