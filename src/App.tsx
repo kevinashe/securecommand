@@ -50,6 +50,11 @@ const VisitorManagementView = React.lazy(() => import('./components/VisitorManag
 const CertificationTrackingView = React.lazy(() => import('./components/CertificationTrackingView').then(m => ({ default: m.CertificationTrackingView })));
 const ReportGeneratorView = React.lazy(() => import('./components/ReportGeneratorView').then(m => ({ default: m.ReportGeneratorView })));
 const NotificationPreferencesView = React.lazy(() => import('./components/NotificationPreferencesView').then(m => ({ default: m.NotificationPreferencesView })));
+const LiveTrackingMap = React.lazy(() => import('./components/LiveTrackingMap').then(m => ({ default: m.LiveTrackingMap })));
+const ClientReportsView = React.lazy(() => import('./components/ClientReportsView').then(m => ({ default: m.ClientReportsView })));
+const AuditTrailView = React.lazy(() => import('./components/AuditTrailView').then(m => ({ default: m.AuditTrailView })));
+const WebhooksView = React.lazy(() => import('./components/WebhooksView').then(m => ({ default: m.WebhooksView })));
+const PayrollExportView = React.lazy(() => import('./components/PayrollExportView').then(m => ({ default: m.PayrollExportView })));
 
 const ViewSpinner = () => (
   <div className="flex items-center justify-center h-64">
@@ -149,6 +154,16 @@ const AppContent: React.FC = () => {
         return <ReportGeneratorView onBack={() => setCurrentView('dashboard')} />;
       case 'notification-preferences':
         return <NotificationPreferencesView onBack={() => setCurrentView('dashboard')} />;
+      case 'live-map':
+        return <LiveTrackingMap onBack={() => setCurrentView('tracking')} />;
+      case 'client-reports':
+        return <ClientReportsView onBack={() => setCurrentView('dashboard')} />;
+      case 'audit-trail':
+        return <AuditTrailView onBack={() => setCurrentView('dashboard')} />;
+      case 'webhooks':
+        return <WebhooksView onBack={() => setCurrentView('dashboard')} />;
+      case 'payroll-export':
+        return <PayrollExportView onBack={() => setCurrentView('dashboard')} />;
       default:
         return <Dashboard />;
     }

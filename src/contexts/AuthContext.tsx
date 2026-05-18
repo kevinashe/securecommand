@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, AuthError } from '@supabase/supabase-js';
 import { supabase, Profile } from '../lib/supabase';
+import { requestNotificationPermission, subscribeToRealtimeNotifications, unsubscribeFromRealtimeNotifications } from '../lib/pushNotifications';
 
 interface AuthContextType {
   user: User | null;
@@ -102,6 +103,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (user && profile) {
+      requestNotificationPermission().then(() => {
+        subscribeToRealtimeNotifications(user.id, profile.company_id);
+      });
+    } else {
+      unsubscribeFromRealtimeNotifications();
+    }
+    return () => unsubscribeFromRealtimeNotifications();
+  }, [user?.id, profile?.company_id]);
 
   const signIn = async (email: string, password: string, companyCode?: string) => {
     // Sign in with email and password
@@ -239,12 +251,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
+    unsubscribeFromRealtimeNotifications();
     try {
       await supabase.auth.signOut();
     } catch {
       // Sign out API failure is non-critical; local state is cleared below
     } finally {
-      // Clear local state regardless of API call success
       setUser(null);
       setProfile(null);
       setCompanyLogo(null);
