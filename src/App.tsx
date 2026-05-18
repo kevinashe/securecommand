@@ -39,6 +39,7 @@ const ClientPortalView = React.lazy(() => import('./components/ClientPortalView'
 const AdvancedScheduling = React.lazy(() => import('./components/AdvancedScheduling').then(m => ({ default: m.AdvancedScheduling })));
 const TimeAttendance = React.lazy(() => import('./components/TimeAttendance').then(m => ({ default: m.TimeAttendance })));
 const InvoicingView = React.lazy(() => import('./components/InvoicingView').then(m => ({ default: m.InvoicingView })));
+const LogbookView = React.lazy(() => import('./components/LogbookView').then(m => ({ default: m.LogbookView })));
 const BusManagementView = React.lazy(() => import('./components/BusManagementView'));
 const BusCheckInView = React.lazy(() => import('./components/BusCheckInView'));
 const BusTrackingView = React.lazy(() => import('./components/BusTrackingView'));
@@ -125,6 +126,8 @@ const AppContent: React.FC = () => {
         return <TimeAttendance onBack={() => setCurrentView('dashboard')} />;
       case 'invoicing':
         return <InvoicingView onBack={() => setCurrentView('dashboard')} />;
+      case 'logbook':
+        return <LogbookView onBack={() => setCurrentView('dashboard')} />;
       case 'bus-management':
         return <BusManagementView onBack={() => setCurrentView('dashboard')} />;
       case 'bus-checkin':

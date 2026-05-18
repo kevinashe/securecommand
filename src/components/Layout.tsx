@@ -6,7 +6,7 @@ import {
   Calendar, AlertTriangle, Package, MessageSquare, CreditCard,
   Building, Bell, Radio, Wallet, Settings, BarChart3, History,
   FileText, User, DollarSign, UserPlus, Globe, Wand2, Clock as ClockIcon,
-  Bus
+  Bus, BookOpen
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -57,6 +57,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
         { id: 'bus-management', icon: Bus, label: 'Bus Management' },
         { id: 'bus-tracking', icon: Bus, label: 'Bus Tracking' },
         { id: 'incidents', icon: AlertTriangle, label: 'Incidents' },
+        { id: 'logbook', icon: BookOpen, label: 'Logbook' },
         { id: 'sos-alerts', icon: Bell, label: 'SOS Alerts' },
         { id: 'invoicing', icon: FileText, label: 'Invoicing' },
         { id: 'analytics', icon: BarChart3, label: 'Analytics' },
@@ -76,6 +77,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
         { id: 'equipment', icon: Package, label: 'Equipment' },
         { id: 'tracking', icon: Radio, label: 'GPS Tracking' },
         { id: 'incidents', icon: AlertTriangle, label: 'Incidents' },
+        { id: 'logbook', icon: BookOpen, label: 'Logbook' },
         { id: 'sos-alerts', icon: Bell, label: 'SOS Alerts' },
         { id: 'analytics', icon: BarChart3, label: 'Analytics' },
         { id: 'messages', icon: MessageSquare, label: 'Messages' },
@@ -86,6 +88,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
     if (profile?.role === 'client') {
       return [
         { id: 'client-portal', icon: LayoutDashboard, label: 'Dashboard' },
+        { id: 'logbook', icon: BookOpen, label: 'Logbook' },
         { id: 'messages', icon: MessageSquare, label: 'Messages' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
       ];
@@ -99,6 +102,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
       { id: 'checkin', icon: Radio, label: 'Check In' },
       { id: 'bus-checkin', icon: Bus, label: 'Bus Check-In' },
       { id: 'incidents', icon: AlertTriangle, label: 'Incidents' },
+      { id: 'logbook', icon: BookOpen, label: 'Logbook' },
       { id: 'sos', icon: Bell, label: 'SOS' },
       { id: 'messages', icon: MessageSquare, label: 'Messages' },
       { id: 'history', icon: History, label: 'My History' },
