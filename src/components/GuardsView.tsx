@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { showToast } from '../lib/toast';
-import { Users, Plus, CreditCard as Edit, Trash2, X, Shield, Mail, Phone, MapPin, History, Building2, ArrowLeft, Briefcase } from 'lucide-react';
+import { Users, Plus, CreditCard as Edit, Trash2, X, Shield, Mail, Phone, MapPin, History, Building2, ArrowLeft, Briefcase, Copy, CheckCircle, Share2 } from 'lucide-react';
 
 interface Guard {
   id: string;
@@ -44,6 +44,15 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showCredentials, setShowCredentials] = useState(false);
+  const [createdCredentials, setCreatedCredentials] = useState<{
+    name: string;
+    email: string;
+    password: string;
+    staffCode: string | null;
+    role: string;
+  } | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
   const [selectedGuard, setSelectedGuard] = useState<Guard | null>(null);
   const [employmentHistory, setEmploymentHistory] = useState<EmploymentHistory[]>([]);
 
@@ -106,8 +115,8 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
     try {
       let newStaffCode = null;
 
-      // Only generate staff code for roles that need it (not super_admin or company_admin without company)
-      if (formData.role === 'security_officer' || formData.role === 'site_manager' || (formData.role === 'company_admin' && profile?.company_id)) {
+      const rolesWithStaffCode = ['security_officer', 'site_manager', 'company_admin', 'dispatcher', 'hr_manager', 'finance_officer', 'office_admin'];
+      if (rolesWithStaffCode.includes(formData.role) && profile?.company_id) {
         const { data: staffCodeData, error: staffCodeError } = await supabase
           .rpc('generate_staff_code', {
             p_company_id: profile?.company_id,
@@ -147,6 +156,16 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
 
         await loadGuards();
         setShowCreateModal(false);
+
+        setCreatedCredentials({
+          name: formData.full_name,
+          email: formData.email,
+          password: formData.password,
+          staffCode: newStaffCode,
+          role: formData.role,
+        });
+        setShowCredentials(true);
+
         setFormData({
           full_name: '',
           email: '',
@@ -154,11 +173,6 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
           password: '',
           role: 'security_officer',
         });
-
-        const successMessage = newStaffCode
-          ? `User created successfully! Staff Code: ${newStaffCode}`
-          : `${formData.role === 'super_admin' ? 'Super Admin' : 'User'} created successfully!`;
-        showToast('success', successMessage);
       }
     } catch (error: any) {
       console.error('Error creating user:', error);
@@ -230,6 +244,36 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
       console.error('Error deleting guard:', error);
       showToast('error', error.message || 'Failed to delete. Make sure the user is deactivated first.');
     }
+  };
+
+  const copyToClipboard = async (text: string, field: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 2000);
+    } catch {
+      showToast('error', 'Failed to copy to clipboard');
+    }
+  };
+
+  const getLoginUrl = () => window.location.origin;
+
+  const getShareText = () => {
+    if (!createdCredentials) return '';
+    const lines = [
+      `Welcome to SecureCommand!`,
+      ``,
+      `Your account has been created. Here are your login details:`,
+      ``,
+      `Login URL: ${getLoginUrl()}`,
+      `Email: ${createdCredentials.email}`,
+      `Temporary Password: ${createdCredentials.password}`,
+      createdCredentials.staffCode ? `Staff Code: ${createdCredentials.staffCode}` : '',
+      `Role: ${createdCredentials.role.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}`,
+      ``,
+      `Please log in and change your password immediately.`,
+    ];
+    return lines.filter(Boolean).join('\n');
   };
 
   const loadEmploymentHistory = async (guardId: string) => {
@@ -776,6 +820,118 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showCredentials && createdCredentials && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 my-8">
+            <div className="text-center mb-6">
+              <div className="mx-auto w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                <CheckCircle className="h-7 w-7 text-green-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Staff Member Created</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Share these login credentials with <span className="font-semibold">{createdCredentials.name}</span>
+              </p>
+            </div>
+
+            <div className="space-y-3 mb-6">
+              <div className="bg-gray-50 rounded-lg p-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Login URL</span>
+                  <button
+                    onClick={() => copyToClipboard(getLoginUrl(), 'url')}
+                    className="text-blue-600 hover:text-blue-700"
+                    title="Copy"
+                  >
+                    {copiedField === 'url' ? <CheckCircle className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                  </button>
+                </div>
+                <p className="text-sm font-mono text-gray-900 break-all">{getLoginUrl()}</p>
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Email</span>
+                  <button
+                    onClick={() => copyToClipboard(createdCredentials.email, 'email')}
+                    className="text-blue-600 hover:text-blue-700"
+                    title="Copy"
+                  >
+                    {copiedField === 'email' ? <CheckCircle className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                  </button>
+                </div>
+                <p className="text-sm font-mono text-gray-900">{createdCredentials.email}</p>
+              </div>
+
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-medium text-amber-700 uppercase tracking-wide">Temporary Password</span>
+                  <button
+                    onClick={() => copyToClipboard(createdCredentials.password, 'password')}
+                    className="text-blue-600 hover:text-blue-700"
+                    title="Copy"
+                  >
+                    {copiedField === 'password' ? <CheckCircle className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                  </button>
+                </div>
+                <p className="text-sm font-mono text-gray-900">{createdCredentials.password}</p>
+                <p className="text-xs text-amber-600 mt-1">Staff should change this after first login</p>
+              </div>
+
+              {createdCredentials.staffCode && (
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Staff Code</span>
+                    <button
+                      onClick={() => copyToClipboard(createdCredentials.staffCode!, 'code')}
+                      className="text-blue-600 hover:text-blue-700"
+                      title="Copy"
+                    >
+                      {copiedField === 'code' ? <CheckCircle className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  <p className="text-sm font-mono font-bold text-blue-600">{createdCredentials.staffCode}</p>
+                </div>
+              )}
+
+              <div className="bg-gray-50 rounded-lg p-3">
+                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Role</span>
+                <p className="text-sm text-gray-900 mt-1">
+                  {createdCredentials.role.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={() => copyToClipboard(getShareText(), 'all')}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                {copiedField === 'all' ? (
+                  <>
+                    <CheckCircle className="h-4 w-4" />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="h-4 w-4" />
+                    <span>Copy All Details</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => {
+                  setShowCredentials(false);
+                  setCreatedCredentials(null);
+                }}
+                className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}

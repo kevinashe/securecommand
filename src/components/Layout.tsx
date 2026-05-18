@@ -88,6 +88,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
     if (profile?.role === 'dispatcher') {
       return [
         { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+        { id: 'time-attendance', icon: ClockIcon, label: 'Clock In/Out' },
         { id: 'guards', icon: Users, label: 'Staff' },
         { id: 'shifts', icon: Calendar, label: 'Shifts' },
         { id: 'advanced-scheduling', icon: Wand2, label: 'Smart Scheduling' },
@@ -126,6 +127,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
     if (profile?.role === 'office_admin') {
       return [
         { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+        { id: 'time-attendance', icon: ClockIcon, label: 'Clock In/Out' },
         { id: 'guards', icon: Users, label: 'Staff' },
         { id: 'sites', icon: MapPin, label: 'Sites' },
         { id: 'equipment', icon: Package, label: 'Equipment' },

@@ -165,11 +165,15 @@ export const InvoicingView: React.FC<InvoicingViewProps> = ({ onBack }) => {
 
       const subtotal = Math.round(items.reduce((sum, item) => sum + item.amount, 0) * 100) / 100;
       const taxAmount = Math.round(subtotal * (formData.tax_rate / 100) * 100) / 100;
+      const totalAmount = Math.round((subtotal + taxAmount) * 100) / 100;
 
       await supabase
         .from('invoices')
         .update({
+          subtotal,
           tax_amount: taxAmount,
+          total_amount: totalAmount,
+          amount: totalAmount,
         })
         .eq('id', invoice.id);
 

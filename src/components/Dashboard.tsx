@@ -213,7 +213,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
     },
   ].filter(card => card.show);
 
-  const isEmployee = profile?.role === 'security_officer';
+  const employeeRoles = ['security_officer', 'dispatcher', 'hr_manager', 'finance_officer', 'office_admin'];
+  const isEmployee = employeeRoles.includes(profile?.role || '');
 
   const quickActions = [
     {
