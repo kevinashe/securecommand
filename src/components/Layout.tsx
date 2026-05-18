@@ -6,7 +6,7 @@ import {
   Calendar, AlertTriangle, Package, MessageSquare, CreditCard,
   Building, Bell, Radio, Wallet, Settings, BarChart3, History,
   FileText, User, DollarSign, UserPlus, Globe, Wand2, Clock as ClockIcon,
-  Bus, BookOpen
+  Bus, BookOpen, UserCheck, Award, Printer, BellRing, Compass
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -48,6 +48,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
         { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
         { id: 'sites', icon: MapPin, label: 'Sites' },
         { id: 'guards', icon: Users, label: 'Staff' },
+        { id: 'certifications', icon: Award, label: 'Certifications' },
         { id: 'equipment', icon: Package, label: 'Equipment' },
         { id: 'shifts', icon: Calendar, label: 'Shifts' },
         { id: 'advanced-scheduling', icon: Wand2, label: 'Smart Scheduling' },
@@ -56,12 +57,15 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
         { id: 'tracking', icon: Radio, label: 'GPS Tracking' },
         { id: 'bus-management', icon: Bus, label: 'Bus Management' },
         { id: 'bus-tracking', icon: Bus, label: 'Bus Tracking' },
+        { id: 'visitors', icon: UserCheck, label: 'Visitors' },
         { id: 'incidents', icon: AlertTriangle, label: 'Incidents' },
         { id: 'logbook', icon: BookOpen, label: 'Logbook' },
         { id: 'sos-alerts', icon: Bell, label: 'SOS Alerts' },
         { id: 'invoicing', icon: FileText, label: 'Invoicing' },
+        { id: 'reports', icon: Printer, label: 'Reports' },
         { id: 'analytics', icon: BarChart3, label: 'Analytics' },
         { id: 'messages', icon: MessageSquare, label: 'Messages' },
+        { id: 'notification-preferences', icon: BellRing, label: 'Alert Settings' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
         { id: 'settings', icon: Settings, label: 'Settings' },
       ];
@@ -72,13 +76,16 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
         { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
         { id: 'sites', icon: MapPin, label: 'Sites' },
         { id: 'guards', icon: Users, label: 'Guards' },
+        { id: 'certifications', icon: Award, label: 'Certifications' },
         { id: 'shifts', icon: Calendar, label: 'Shifts' },
         { id: 'patrol', icon: MapPin, label: 'Patrol Routes' },
         { id: 'equipment', icon: Package, label: 'Equipment' },
         { id: 'tracking', icon: Radio, label: 'GPS Tracking' },
+        { id: 'visitors', icon: UserCheck, label: 'Visitors' },
         { id: 'incidents', icon: AlertTriangle, label: 'Incidents' },
         { id: 'logbook', icon: BookOpen, label: 'Logbook' },
         { id: 'sos-alerts', icon: Bell, label: 'SOS Alerts' },
+        { id: 'reports', icon: Printer, label: 'Reports' },
         { id: 'analytics', icon: BarChart3, label: 'Analytics' },
         { id: 'messages', icon: MessageSquare, label: 'Messages' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
@@ -105,6 +112,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
       return [
         { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
         { id: 'guards', icon: Users, label: 'Staff' },
+        { id: 'certifications', icon: Award, label: 'Certifications' },
         { id: 'time-attendance', icon: ClockIcon, label: 'Time & Attendance' },
         { id: 'shifts', icon: Calendar, label: 'Shifts' },
         { id: 'logbook', icon: BookOpen, label: 'Logbook' },
@@ -117,6 +125,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
       return [
         { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
         { id: 'invoicing', icon: FileText, label: 'Invoicing' },
+        { id: 'reports', icon: Printer, label: 'Reports' },
         { id: 'time-attendance', icon: ClockIcon, label: 'Time & Attendance' },
         { id: 'analytics', icon: BarChart3, label: 'Analytics' },
         { id: 'messages', icon: MessageSquare, label: 'Messages' },
@@ -148,12 +157,13 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
     }
 
     return [
-      { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { id: 'guard-hub', icon: Compass, label: 'Command Center' },
       { id: 'time-attendance', icon: ClockIcon, label: 'Clock In/Out' },
       { id: 'shifts', icon: Calendar, label: 'My Shifts' },
       { id: 'patrol', icon: MapPin, label: 'Patrol' },
       { id: 'checkin', icon: Radio, label: 'Check In' },
       { id: 'bus-checkin', icon: Bus, label: 'Bus Check-In' },
+      { id: 'visitors', icon: UserCheck, label: 'Visitors' },
       { id: 'incidents', icon: AlertTriangle, label: 'Incidents' },
       { id: 'logbook', icon: BookOpen, label: 'Logbook' },
       { id: 'sos', icon: Bell, label: 'SOS' },

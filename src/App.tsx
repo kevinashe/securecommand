@@ -45,6 +45,11 @@ const BusCheckInView = React.lazy(() => import('./components/BusCheckInView'));
 const BusTrackingView = React.lazy(() => import('./components/BusTrackingView'));
 const ProfileSettings = React.lazy(() => import('./components/ProfileSettings').then(m => ({ default: m.ProfileSettings })));
 const SuperAdminDashboard = React.lazy(() => import('./components/SuperAdminDashboard').then(m => ({ default: m.SuperAdminDashboard })));
+const GuardHubView = React.lazy(() => import('./components/GuardHubView').then(m => ({ default: m.GuardHubView })));
+const VisitorManagementView = React.lazy(() => import('./components/VisitorManagementView').then(m => ({ default: m.VisitorManagementView })));
+const CertificationTrackingView = React.lazy(() => import('./components/CertificationTrackingView').then(m => ({ default: m.CertificationTrackingView })));
+const ReportGeneratorView = React.lazy(() => import('./components/ReportGeneratorView').then(m => ({ default: m.ReportGeneratorView })));
+const NotificationPreferencesView = React.lazy(() => import('./components/NotificationPreferencesView').then(m => ({ default: m.NotificationPreferencesView })));
 
 const ViewSpinner = () => (
   <div className="flex items-center justify-center h-64">
@@ -134,6 +139,16 @@ const AppContent: React.FC = () => {
         return <BusCheckInView onBack={() => setCurrentView('dashboard')} />;
       case 'bus-tracking':
         return <BusTrackingView onBack={() => setCurrentView('dashboard')} />;
+      case 'guard-hub':
+        return <GuardHubView onViewChange={setCurrentView} onBack={() => setCurrentView('dashboard')} />;
+      case 'visitors':
+        return <VisitorManagementView onBack={() => setCurrentView('dashboard')} />;
+      case 'certifications':
+        return <CertificationTrackingView onBack={() => setCurrentView('dashboard')} />;
+      case 'reports':
+        return <ReportGeneratorView onBack={() => setCurrentView('dashboard')} />;
+      case 'notification-preferences':
+        return <NotificationPreferencesView onBack={() => setCurrentView('dashboard')} />;
       default:
         return <Dashboard />;
     }
