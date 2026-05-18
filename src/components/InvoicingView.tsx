@@ -67,7 +67,7 @@ export const InvoicingView: React.FC<InvoicingViewProps> = ({ onBack }) => {
     try {
       const { data: shifts } = await supabase
         .from('shifts')
-        .select('*, sites(name), profiles(full_name)')
+        .select('*, sites(name), profiles!shifts_guard_id_fkey(full_name)')
         .eq('status', 'completed')
         .gte('start_time', formData.billing_period_start)
         .lte('end_time', formData.billing_period_end);

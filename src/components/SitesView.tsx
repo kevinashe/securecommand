@@ -110,7 +110,7 @@ export const SitesView: React.FC<SitesViewProps> = ({ onBack }) => {
 
       const { data, error } = await supabase
         .from('shifts')
-        .select('*, profiles(full_name)')
+        .select('*, profiles!shifts_guard_id_fkey(full_name)')
         .eq('site_id', siteId)
         .gte('start_time', startDate.toISOString())
         .lte('start_time', endDate.toISOString())

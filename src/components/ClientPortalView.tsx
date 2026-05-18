@@ -84,7 +84,7 @@ export const ClientPortalView: React.FC<ClientPortalViewProps> = ({ onBack }) =>
       if (siteIds.length > 0) {
         const { data: shiftsData } = await supabase
           .from('shifts')
-          .select('guard_id, profiles(id, full_name, phone, avatar_url)')
+          .select('guard_id, profiles!shifts_guard_id_fkey(id, full_name, phone, avatar_url)')
           .in('site_id', siteIds)
           .eq('status', 'active');
 

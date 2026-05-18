@@ -95,7 +95,7 @@ class SyncManager {
       const [shiftsRes, sitesRes, checkpointsRes, guardsRes] = await Promise.all([
         supabase
           .from('shifts')
-          .select('*, sites(name, address), profiles(full_name)')
+          .select('*, sites(name, address), profiles!shifts_guard_id_fkey(full_name)')
           .gte('start_time', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
           .lte('start_time', new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()),
 
