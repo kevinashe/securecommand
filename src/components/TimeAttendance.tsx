@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Clock, MapPin, Camera, Coffee, LogOut as LogOutIcon, CheckCircle, AlertCircle, X, ArrowLeft } from 'lucide-react';
+import { Clock, MapPin, Camera, Coffee, LogOut as LogOutIcon, CheckCircle, AlertCircle, X, ArrowLeft, Briefcase } from 'lucide-react';
 import { showToast } from '../lib/toast';
+
+const officeRoles = ['dispatcher', 'hr_manager', 'finance_officer', 'office_admin'];
 
 interface TimeClockEntry {
   id: string;
@@ -312,7 +314,11 @@ export const TimeAttendance: React.FC<TimeAttendanceProps> = ({ onBack }) => {
 
       <div>
         <h2 className="text-2xl font-bold text-gray-900">Time & Attendance</h2>
-        <p className="text-gray-600">Clock in/out with geofence verification</p>
+        <p className="text-gray-600">
+          {officeRoles.includes(profile?.role || '')
+            ? 'Clock in/out with location verification'
+            : 'Clock in/out with photo and geofence verification'}
+        </p>
       </div>
 
       {message && (
@@ -364,12 +370,16 @@ export const TimeAttendance: React.FC<TimeAttendanceProps> = ({ onBack }) => {
                     Start Break
                   </button>
                   <button
-                    onClick={() => startCamera()}
+                    onClick={officeRoles.includes(profile?.role || '') ? clockOut : () => startCamera()}
                     disabled={processing}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
                   >
-                    <LogOutIcon className="h-5 w-5" />
-                    Clock Out
+                    {processing ? (
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                    ) : (
+                      <LogOutIcon className="h-5 w-5" />
+                    )}
+                    {processing ? 'Clocking Out...' : 'Clock Out'}
                   </button>
                 </>
               ) : (
@@ -386,14 +396,29 @@ export const TimeAttendance: React.FC<TimeAttendanceProps> = ({ onBack }) => {
         ) : (
           <div className="space-y-4">
             <p className="text-gray-600">You are not currently clocked in.</p>
-            <button
-              onClick={() => startCamera()}
-              disabled={processing}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Clock className="h-5 w-5" />
-              Clock In
-            </button>
+            {officeRoles.includes(profile?.role || '') ? (
+              <button
+                onClick={clockIn}
+                disabled={processing}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              >
+                {processing ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                ) : (
+                  <Briefcase className="h-5 w-5" />
+                )}
+                {processing ? 'Clocking In...' : 'Clock In'}
+              </button>
+            ) : (
+              <button
+                onClick={() => startCamera()}
+                disabled={processing}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Clock className="h-5 w-5" />
+                Clock In
+              </button>
+            )}
           </div>
         )}
       </div>
