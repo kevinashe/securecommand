@@ -1,9 +1,19 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { QrCode, CheckCircle, MapPin, Clock, Camera, X, ArrowLeft } from 'lucide-react';
+import { QrCode, CheckCircle, MapPin, Clock, Camera, X, ArrowLeft, ShieldAlert } from 'lucide-react';
 import { showToast } from '../lib/toast';
 import jsQR from 'jsqr';
+
+function getDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 
 interface Checkpoint {
   id: string;
@@ -13,6 +23,9 @@ interface Checkpoint {
   qr_code: string;
   order_index: number;
   route_name?: string;
+  latitude: number | null;
+  longitude: number | null;
+  geofence_radius: number;
 }
 
 interface CheckIn {
@@ -73,6 +86,9 @@ export const CheckInView: React.FC<CheckInViewProps> = ({ onBack }) => {
       const formattedData = data?.map((item: any) => ({
         ...item,
         route_name: item.patrol_routes?.name,
+        latitude: item.latitude ? Number(item.latitude) : null,
+        longitude: item.longitude ? Number(item.longitude) : null,
+        geofence_radius: Number(item.geofence_radius) || 150,
       }));
 
       setCheckpoints(formattedData || []);
@@ -294,6 +310,47 @@ export const CheckInView: React.FC<CheckInViewProps> = ({ onBack }) => {
         return;
       }
 
+      // Require location -- this is how we prevent QR photo fraud
+      let position: GeolocationPosition | null = null;
+      try {
+        position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0,
+          });
+        });
+      } catch {
+        setMessage({
+          type: 'error',
+          text: 'Location access is required for check-in. Please enable GPS and try again.',
+        });
+        setCheckingIn(false);
+        return;
+      }
+
+      const userLat = position.coords.latitude;
+      const userLng = position.coords.longitude;
+
+      // Geofence check: if checkpoint has coordinates, enforce radius
+      let distance: number | null = null;
+      let withinGeofence = true;
+
+      if (checkpoint.latitude != null && checkpoint.longitude != null) {
+        distance = getDistanceMeters(userLat, userLng, checkpoint.latitude, checkpoint.longitude);
+        withinGeofence = distance <= checkpoint.geofence_radius;
+
+        if (!withinGeofence) {
+          setMessage({
+            type: 'error',
+            text: `You are ${Math.round(distance)}m away from "${checkpoint.name}". You must be within ${checkpoint.geofence_radius}m to check in. Move closer and try again.`,
+          });
+          setCheckingIn(false);
+          return;
+        }
+      }
+
+      // Upload selfie
       const photoData = capturedPhoto.split(',')[1];
       const blob = Uint8Array.from(atob(photoData), (c) => c.charCodeAt(0));
       const fileName = `checkin-${profile?.id}-${Date.now()}.jpg`;
@@ -312,26 +369,25 @@ export const CheckInView: React.FC<CheckInViewProps> = ({ onBack }) => {
         photoUrl = data.publicUrl;
       }
 
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject);
-      }).catch(() => null);
-
       const { error } = await supabase.from('check_ins').insert([
         {
           checkpoint_id: checkpoint.id,
           guard_id: profile?.id,
           checked_in_at: new Date().toISOString(),
           photo_url: photoUrl,
-          latitude: position?.coords.latitude || null,
-          longitude: position?.coords.longitude || null,
+          latitude: userLat,
+          longitude: userLng,
+          is_within_geofence: withinGeofence,
+          distance_from_checkpoint: distance != null ? Math.round(distance) : null,
         },
       ]);
 
       if (error) throw error;
 
+      const distanceText = distance != null ? ` (${Math.round(distance)}m from checkpoint)` : '';
       setMessage({
         type: 'success',
-        text: `Successfully checked in at ${checkpoint.name}!`,
+        text: `Successfully checked in at ${checkpoint.name}!${distanceText}`,
       });
       setQrInput('');
       setCapturedPhoto(null);
@@ -488,6 +544,13 @@ export const CheckInView: React.FC<CheckInViewProps> = ({ onBack }) => {
             <h2 className="text-xl font-bold text-gray-900">Step 2: Scan QR Code</h2>
             <p className="text-sm text-gray-600">Enter or scan checkpoint QR code</p>
           </div>
+        </div>
+
+        <div className="flex items-center gap-2 mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <ShieldAlert className="h-4 w-4 text-amber-600 flex-shrink-0" />
+          <p className="text-xs text-amber-800">
+            Location verification is required. You must be physically near the checkpoint to check in.
+          </p>
         </div>
 
         <form onSubmit={(e) => { e.preventDefault(); handleCheckIn(); }} className="space-y-4">

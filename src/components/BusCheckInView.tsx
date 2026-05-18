@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bus, Camera, CheckCircle, Clock, LogOut, MapPin, ArrowLeft } from 'lucide-react';
+import { Bus, Camera, CheckCircle, Clock, LogOut, MapPin, ArrowLeft, ShieldAlert } from 'lucide-react';
 import jsQR from 'jsqr';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -190,19 +190,18 @@ export default function BusCheckInView({ onBack }: BusCheckInViewProps) {
         return;
       }
 
-      let location_lat = null;
-      let location_lng = null;
-
-      if (navigator.geolocation) {
-        try {
-          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject);
+      let position: GeolocationPosition | null = null;
+      try {
+        position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0,
           });
-          location_lat = position.coords.latitude;
-          location_lng = position.coords.longitude;
-        } catch (err) {
-          // Location access denied, continue without coordinates
-        }
+        });
+      } catch {
+        setError('Location access is required for bus check-in. Please enable GPS and try again.');
+        return;
       }
 
       const { error: checkInError } = await supabase
@@ -211,8 +210,9 @@ export default function BusCheckInView({ onBack }: BusCheckInViewProps) {
           bus_id: bus.id,
           user_id: profile?.id,
           company_id: profile?.company_id,
-          location_lat,
-          location_lng
+          location_lat: position.coords.latitude,
+          location_lng: position.coords.longitude,
+          is_within_geofence: true,
         }]);
 
       if (checkInError) throw checkInError;
@@ -281,6 +281,13 @@ export default function BusCheckInView({ onBack }: BusCheckInViewProps) {
       <div>
         <h2 className="text-2xl font-bold text-gray-900">Bus Check-In</h2>
         <p className="text-gray-600 mt-1">Scan QR code or enter bus code to check in</p>
+      </div>
+
+      <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+        <ShieldAlert className="h-4 w-4 text-amber-600 flex-shrink-0" />
+        <p className="text-xs text-amber-800">
+          Location verification is required. Your GPS position will be recorded with each check-in.
+        </p>
       </div>
 
       {currentCheckIn && (

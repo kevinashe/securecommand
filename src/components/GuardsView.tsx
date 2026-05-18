@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { showToast } from '../lib/toast';
-import { Users, Plus, CreditCard as Edit, Trash2, X, Shield, Mail, Phone, MapPin, History, Building2, ArrowLeft } from 'lucide-react';
+import { Users, Plus, CreditCard as Edit, Trash2, X, Shield, Mail, Phone, MapPin, History, Building2, ArrowLeft, Briefcase } from 'lucide-react';
 
 interface Guard {
   id: string;
@@ -43,6 +43,7 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedGuard, setSelectedGuard] = useState<Guard | null>(null);
   const [employmentHistory, setEmploymentHistory] = useState<EmploymentHistory[]>([]);
 
@@ -66,12 +67,10 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
         .select('id, full_name, role, company_id, avatar_url, phone, staff_code, is_active, employment_status, created_at, updated_at')
         .order('created_at', { ascending: false });
 
-      // Super admins can see all users including other super admins and company admins
       if (profile?.role === 'super_admin') {
-        query = query.in('role', ['security_officer', 'site_manager', 'company_admin', 'super_admin']);
+        query = query.in('role', ['security_officer', 'site_manager', 'company_admin', 'super_admin', 'dispatcher', 'hr_manager', 'finance_officer', 'office_admin']);
       } else if (profile?.role === 'company_admin' || profile?.role === 'site_manager') {
-        // Company admins and site managers only see their company's guards
-        query = query.eq('company_id', profile.company_id).in('role', ['security_officer', 'site_manager']);
+        query = query.eq('company_id', profile.company_id).in('role', ['security_officer', 'site_manager', 'dispatcher', 'hr_manager', 'finance_officer', 'office_admin']);
       }
 
       const { data, error } = await query;
@@ -212,6 +211,27 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!selectedGuard) return;
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', selectedGuard.id)
+        .eq('is_active', false);
+
+      if (error) throw error;
+
+      showToast('success', `${selectedGuard.full_name} has been removed`);
+      setShowDeleteConfirm(false);
+      setSelectedGuard(null);
+      loadGuards();
+    } catch (error: any) {
+      console.error('Error deleting guard:', error);
+      showToast('error', error.message || 'Failed to delete. Make sure the user is deactivated first.');
+    }
+  };
+
   const loadEmploymentHistory = async (guardId: string) => {
     try {
       const { data, error } = await supabase
@@ -288,12 +308,12 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
           )}
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
-              {profile?.role === 'super_admin' ? 'User Management' : 'Security Guards'}
+              {profile?.role === 'super_admin' ? 'User Management' : 'Staff Management'}
             </h1>
             <p className="text-gray-600 mt-1">
               {profile?.role === 'super_admin'
                 ? 'Manage all users including admins'
-                : 'Manage security officers and site managers'}
+                : 'Manage field officers and office staff'}
           </p>
         </div>
         </div>
@@ -302,7 +322,7 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
           className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <Plus className="h-5 w-5" />
-          <span>{profile?.role === 'super_admin' ? 'Add User' : 'Add Guard'}</span>
+          <span>{profile?.role === 'super_admin' ? 'Add User' : 'Add Staff'}</span>
         </button>
       </div>
 
@@ -311,19 +331,19 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
           <div className="col-span-full bg-white rounded-xl shadow-sm p-12 text-center border border-gray-200">
             <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {profile?.role === 'super_admin' ? 'No Users Yet' : 'No Guards Yet'}
+              {profile?.role === 'super_admin' ? 'No Users Yet' : 'No Staff Yet'}
             </h3>
             <p className="text-gray-600 mb-4">
               {profile?.role === 'super_admin'
                 ? 'Get started by adding your first user.'
-                : 'Get started by adding your first security guard.'}
+                : 'Get started by adding your first team member.'}
             </p>
             <button
               onClick={() => setShowCreateModal(true)}
               className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               <Plus className="h-5 w-5" />
-              <span>{profile?.role === 'super_admin' ? 'Add User' : 'Add Guard'}</span>
+              <span>{profile?.role === 'super_admin' ? 'Add User' : 'Add Staff'}</span>
             </button>
           </div>
         ) : (
@@ -334,13 +354,19 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-3">
-                  <div className="bg-blue-100 p-3 rounded-full">
-                    <Shield className="h-6 w-6 text-blue-600" />
+                  <div className={`p-3 rounded-full ${
+                    ['dispatcher', 'hr_manager', 'finance_officer', 'office_admin'].includes(guard.role)
+                      ? 'bg-teal-100' : 'bg-blue-100'
+                  }`}>
+                    {['dispatcher', 'hr_manager', 'finance_officer', 'office_admin'].includes(guard.role)
+                      ? <Briefcase className="h-6 w-6 text-teal-600" />
+                      : <Shield className="h-6 w-6 text-blue-600" />
+                    }
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">{guard.full_name}</h3>
-                    <span className="text-xs text-gray-500 capitalize">
-                      {guard.role.replace('_', ' ')}
+                    <span className="text-xs text-gray-500">
+                      {guard.role.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                     </span>
                   </div>
                 </div>
@@ -388,6 +414,18 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
                   <History className="h-4 w-4" />
                   <span className="text-sm font-medium">History</span>
                 </button>
+                {!guard.is_active && (
+                  <button
+                    onClick={() => {
+                      setSelectedGuard(guard);
+                      setShowDeleteConfirm(true);
+                    }}
+                    className="flex items-center justify-center space-x-1 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Delete inactive user"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             </div>
           ))
@@ -399,7 +437,7 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 my-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900">
-                {profile?.role === 'super_admin' ? 'Add User' : 'Add Guard'}
+                {profile?.role === 'super_admin' ? 'Add User' : 'Add Staff Member'}
               </h2>
               <button
                 onClick={() => setShowCreateModal(false)}
@@ -465,13 +503,21 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="security_officer">Security Officer</option>
-                  <option value="site_manager">Site Manager</option>
+                  <optgroup label="Field Staff">
+                    <option value="security_officer">Security Officer</option>
+                    <option value="site_manager">Site Manager</option>
+                  </optgroup>
+                  <optgroup label="Office Staff">
+                    <option value="dispatcher">Dispatcher</option>
+                    <option value="hr_manager">HR Manager</option>
+                    <option value="finance_officer">Finance Officer</option>
+                    <option value="office_admin">Office Admin</option>
+                  </optgroup>
                   {profile?.role === 'super_admin' && (
-                    <>
+                    <optgroup label="Administration">
                       <option value="company_admin">Company Admin</option>
                       <option value="super_admin">Super Admin</option>
-                    </>
+                    </optgroup>
                   )}
                 </select>
               </div>
@@ -488,7 +534,7 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
                   type="submit"
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  {profile?.role === 'super_admin' ? 'Add User' : 'Add Guard'}
+                  {profile?.role === 'super_admin' ? 'Add User' : 'Add Staff'}
                 </button>
               </div>
             </form>
@@ -603,6 +649,39 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
         </div>
       )}
 
+      {showDeleteConfirm && selectedGuard && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6">
+            <div className="text-center mb-6">
+              <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                <Trash2 className="h-6 w-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Delete User</h3>
+              <p className="text-sm text-gray-600">
+                Are you sure you want to permanently remove <span className="font-semibold">{selectedGuard.full_name}</span>? This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setSelectedGuard(null);
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showEditModal && selectedGuard && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 my-8">
@@ -659,13 +738,21 @@ export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="security_officer">Security Officer</option>
-                  <option value="site_manager">Site Manager</option>
+                  <optgroup label="Field Staff">
+                    <option value="security_officer">Security Officer</option>
+                    <option value="site_manager">Site Manager</option>
+                  </optgroup>
+                  <optgroup label="Office Staff">
+                    <option value="dispatcher">Dispatcher</option>
+                    <option value="hr_manager">HR Manager</option>
+                    <option value="finance_officer">Finance Officer</option>
+                    <option value="office_admin">Office Admin</option>
+                  </optgroup>
                   {profile?.role === 'super_admin' && (
-                    <>
+                    <optgroup label="Administration">
                       <option value="company_admin">Company Admin</option>
                       <option value="super_admin">Super Admin</option>
-                    </>
+                    </optgroup>
                   )}
                 </select>
               </div>

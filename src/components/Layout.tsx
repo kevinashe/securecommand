@@ -47,7 +47,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
       return [
         { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
         { id: 'sites', icon: MapPin, label: 'Sites' },
-        { id: 'guards', icon: Users, label: 'Guards' },
+        { id: 'guards', icon: Users, label: 'Staff' },
         { id: 'equipment', icon: Package, label: 'Equipment' },
         { id: 'shifts', icon: Calendar, label: 'Shifts' },
         { id: 'advanced-scheduling', icon: Wand2, label: 'Smart Scheduling' },
@@ -80,6 +80,57 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
         { id: 'logbook', icon: BookOpen, label: 'Logbook' },
         { id: 'sos-alerts', icon: Bell, label: 'SOS Alerts' },
         { id: 'analytics', icon: BarChart3, label: 'Analytics' },
+        { id: 'messages', icon: MessageSquare, label: 'Messages' },
+        { id: 'notifications', icon: Bell, label: 'Notifications' },
+      ];
+    }
+
+    if (profile?.role === 'dispatcher') {
+      return [
+        { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+        { id: 'guards', icon: Users, label: 'Staff' },
+        { id: 'shifts', icon: Calendar, label: 'Shifts' },
+        { id: 'advanced-scheduling', icon: Wand2, label: 'Smart Scheduling' },
+        { id: 'sites', icon: MapPin, label: 'Sites' },
+        { id: 'tracking', icon: Radio, label: 'GPS Tracking' },
+        { id: 'incidents', icon: AlertTriangle, label: 'Incidents' },
+        { id: 'sos-alerts', icon: Bell, label: 'SOS Alerts' },
+        { id: 'messages', icon: MessageSquare, label: 'Messages' },
+        { id: 'notifications', icon: Bell, label: 'Notifications' },
+      ];
+    }
+
+    if (profile?.role === 'hr_manager') {
+      return [
+        { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+        { id: 'guards', icon: Users, label: 'Staff' },
+        { id: 'time-attendance', icon: ClockIcon, label: 'Time & Attendance' },
+        { id: 'shifts', icon: Calendar, label: 'Shifts' },
+        { id: 'logbook', icon: BookOpen, label: 'Logbook' },
+        { id: 'messages', icon: MessageSquare, label: 'Messages' },
+        { id: 'notifications', icon: Bell, label: 'Notifications' },
+      ];
+    }
+
+    if (profile?.role === 'finance_officer') {
+      return [
+        { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+        { id: 'invoicing', icon: FileText, label: 'Invoicing' },
+        { id: 'time-attendance', icon: ClockIcon, label: 'Time & Attendance' },
+        { id: 'analytics', icon: BarChart3, label: 'Analytics' },
+        { id: 'messages', icon: MessageSquare, label: 'Messages' },
+        { id: 'notifications', icon: Bell, label: 'Notifications' },
+      ];
+    }
+
+    if (profile?.role === 'office_admin') {
+      return [
+        { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+        { id: 'guards', icon: Users, label: 'Staff' },
+        { id: 'sites', icon: MapPin, label: 'Sites' },
+        { id: 'equipment', icon: Package, label: 'Equipment' },
+        { id: 'shifts', icon: Calendar, label: 'Shifts' },
+        { id: 'logbook', icon: BookOpen, label: 'Logbook' },
         { id: 'messages', icon: MessageSquare, label: 'Messages' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
       ];
