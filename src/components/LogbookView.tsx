@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { showToast } from '../lib/toast';
 import {
   BookOpen, Plus, X, ArrowLeft, Clock, MapPin, User,
-  Filter, ChevronDown, AlertTriangle, Eye, Search
+  Filter, ChevronDown, AlertTriangle, Eye, Search, Pencil, Save
 } from 'lucide-react';
 
 interface LogbookEntry {
@@ -59,6 +59,9 @@ export const LogbookView: React.FC<LogbookViewProps> = ({ onBack }) => {
   const [filterSite, setFilterSite] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
 
+  const [editingEntry, setEditingEntry] = useState(false);
+  const [editData, setEditData] = useState({ entry_type: '', title: '', description: '', priority: '', site_id: '' });
+
   const [formData, setFormData] = useState({
     site_id: '',
     entry_type: 'activity',
@@ -68,6 +71,7 @@ export const LogbookView: React.FC<LogbookViewProps> = ({ onBack }) => {
   });
 
   const canCreate = profile?.role === 'security_officer' || profile?.role === 'site_manager';
+  const canEdit = profile?.role === 'company_admin';
   const isAdmin = profile?.role === 'company_admin' || profile?.role === 'site_manager' || profile?.role === 'super_admin' || profile?.role === 'client';
 
   useEffect(() => {
@@ -165,6 +169,47 @@ export const LogbookView: React.FC<LogbookViewProps> = ({ onBack }) => {
     } catch (error) {
       console.error('Error creating logbook entry:', error);
       showToast('error', 'Failed to record logbook entry');
+    }
+  };
+
+  const startEditing = () => {
+    if (!selectedEntry) return;
+    setEditData({
+      entry_type: selectedEntry.entry_type,
+      title: selectedEntry.title,
+      description: selectedEntry.description,
+      priority: selectedEntry.priority,
+      site_id: selectedEntry.site_id || '',
+    });
+    setEditingEntry(true);
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedEntry) return;
+
+    try {
+      const { error } = await supabase
+        .from('logbook_entries')
+        .update({
+          entry_type: editData.entry_type,
+          title: editData.title,
+          description: editData.description,
+          priority: editData.priority,
+          site_id: editData.site_id || null,
+        })
+        .eq('id', selectedEntry.id);
+
+      if (error) throw error;
+
+      showToast('success', 'Logbook entry updated');
+      setEditingEntry(false);
+      setShowDetailModal(false);
+      setSelectedEntry(null);
+      loadEntries();
+    } catch (error) {
+      console.error('Error updating logbook entry:', error);
+      showToast('error', 'Failed to update logbook entry');
     }
   };
 
@@ -402,7 +447,7 @@ export const LogbookView: React.FC<LogbookViewProps> = ({ onBack }) => {
                     return (
                       <div
                         key={entry.id}
-                        onClick={() => { setSelectedEntry(entry); setShowDetailModal(true); }}
+                        onClick={() => { setSelectedEntry(entry); setShowDetailModal(true); setEditingEntry(false); }}
                         className="relative md:pl-12 cursor-pointer group"
                       >
                         <div className={`absolute left-3.5 top-5 h-3 w-3 rounded-full border-2 border-white shadow-sm hidden md:block ${priorityInfo.dot}`} />
@@ -564,52 +609,174 @@ export const LogbookView: React.FC<LogbookViewProps> = ({ onBack }) => {
         </div>
       )}
 
-      {/* Detail Modal */}
+      {/* Detail / Edit Modal */}
       {showDetailModal && selectedEntry && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 my-8">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getEntryTypeStyle(selectedEntry.entry_type)}`}>
-                  {getEntryTypeLabel(selectedEntry.entry_type)}
-                </span>
-                {selectedEntry.priority !== 'normal' && (
-                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    selectedEntry.priority === 'urgent' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
-                  }`}>
-                    <AlertTriangle className="h-3 w-3" />
-                    {getPriorityInfo(selectedEntry.priority).label}
+            {editingEntry ? (
+              <>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">Edit Logbook Entry</h2>
+                    <p className="text-sm text-gray-500 mt-0.5">Modify the entry details below</p>
+                  </div>
+                  <button onClick={() => setEditingEntry(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <X className="h-5 w-5 text-gray-400" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleUpdate} className="space-y-5">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Type</label>
+                      <select
+                        value={editData.entry_type}
+                        onChange={(e) => setEditData({ ...editData, entry_type: e.target.value })}
+                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      >
+                        {ENTRY_TYPES.map(t => (
+                          <option key={t.value} value={t.value}>{t.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Priority</label>
+                      <select
+                        value={editData.priority}
+                        onChange={(e) => setEditData({ ...editData, priority: e.target.value })}
+                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      >
+                        {PRIORITIES.map(p => (
+                          <option key={p.value} value={p.value}>{p.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {sites.length > 0 && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Site (optional)</label>
+                      <select
+                        value={editData.site_id}
+                        onChange={(e) => setEditData({ ...editData, site_id: e.target.value })}
+                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      >
+                        <option value="">No specific site</option>
+                        {sites.map(s => (
+                          <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Title</label>
+                    <input
+                      type="text"
+                      value={editData.title}
+                      onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
+                    <textarea
+                      value={editData.description}
+                      onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                      rows={5}
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-none"
+                      required
+                    />
+                  </div>
+
+                  <div className="flex space-x-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditingEntry(false)}
+                      className="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors text-sm"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm flex items-center justify-center gap-2"
+                    >
+                      <Save className="h-4 w-4" />
+                      Save Changes
+                    </button>
+                  </div>
+                </form>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getEntryTypeStyle(selectedEntry.entry_type)}`}>
+                      {getEntryTypeLabel(selectedEntry.entry_type)}
+                    </span>
+                    {selectedEntry.priority !== 'normal' && (
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        selectedEntry.priority === 'urgent' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+                      }`}>
+                        <AlertTriangle className="h-3 w-3" />
+                        {getPriorityInfo(selectedEntry.priority).label}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {canEdit && (
+                      <button
+                        onClick={startEditing}
+                        className="p-2 hover:bg-blue-50 rounded-lg transition-colors group"
+                        title="Edit entry"
+                      >
+                        <Pencil className="h-4.5 w-4.5 text-gray-400 group-hover:text-blue-600" />
+                      </button>
+                    )}
+                    <button onClick={() => { setShowDetailModal(false); setEditingEntry(false); }} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                      <X className="h-5 w-5 text-gray-400" />
+                    </button>
+                  </div>
+                </div>
+
+                <h2 className="text-xl font-bold text-gray-900 mb-2">{selectedEntry.title}</h2>
+
+                <div className="flex items-center gap-4 mb-5 text-sm text-gray-500">
+                  <span className="flex items-center gap-1.5">
+                    <User className="h-4 w-4" />
+                    {selectedEntry.guard_name}
                   </span>
-                )}
-              </div>
-              <button onClick={() => setShowDetailModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                <X className="h-5 w-5 text-gray-400" />
-              </button>
-            </div>
+                  {selectedEntry.site_name && (
+                    <span className="flex items-center gap-1.5">
+                      <MapPin className="h-4 w-4" />
+                      {selectedEntry.site_name}
+                    </span>
+                  )}
+                </div>
 
-            <h2 className="text-xl font-bold text-gray-900 mb-2">{selectedEntry.title}</h2>
+                <div className="bg-gray-50 rounded-xl p-4 mb-5">
+                  <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{selectedEntry.description}</p>
+                </div>
 
-            <div className="flex items-center gap-4 mb-5 text-sm text-gray-500">
-              <span className="flex items-center gap-1.5">
-                <User className="h-4 w-4" />
-                {selectedEntry.guard_name}
-              </span>
-              {selectedEntry.site_name && (
-                <span className="flex items-center gap-1.5">
-                  <MapPin className="h-4 w-4" />
-                  {selectedEntry.site_name}
-                </span>
-              )}
-            </div>
-
-            <div className="bg-gray-50 rounded-xl p-4 mb-5">
-              <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{selectedEntry.description}</p>
-            </div>
-
-            <div className="flex items-center gap-1.5 text-xs text-gray-400">
-              <Clock className="h-3.5 w-3.5" />
-              {formatFullDate(selectedEntry.created_at)}
-            </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                    <Clock className="h-3.5 w-3.5" />
+                    {formatFullDate(selectedEntry.created_at)}
+                  </div>
+                  {canEdit && (
+                    <button
+                      onClick={startEditing}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                      Edit Entry
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
