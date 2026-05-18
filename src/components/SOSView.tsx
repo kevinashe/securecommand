@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, SOSAlert } from '../lib/supabase';
 import { Bell, AlertCircle, CheckCircle, MapPin, Clock, User, ArrowLeft } from 'lucide-react';
+import { playSosAlert } from '../lib/soundAlerts';
 
 interface SOSViewProps {
   onBack?: () => void;
@@ -17,7 +18,11 @@ export const SOSView: React.FC<SOSViewProps> = ({ onBack }) => {
     loadAlerts();
     const subscription = supabase
       .channel('sos_alerts')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'sos_alerts' }, () => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'sos_alerts' }, () => {
+        playSosAlert();
+        loadAlerts();
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'sos_alerts' }, () => {
         loadAlerts();
       })
       .subscribe();

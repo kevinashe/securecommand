@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Send, Users, User, X, MessageCircle, ArrowLeft } from 'lucide-react';
 import { showToast } from '../lib/toast';
+import { playMessageAlert } from '../lib/soundAlerts';
 
 interface ChatMessage {
   id: string;
@@ -53,7 +54,11 @@ export const LiveChat: React.FC<LiveChatProps> = ({ onBack }) => {
           table: 'chat_messages',
           filter: `company_id=eq.${profile?.company_id}`
         },
-        () => {
+        (payload) => {
+          const msg = payload.new as any;
+          if (msg.sender_id !== profile?.id) {
+            playMessageAlert();
+          }
           loadMessages();
         }
       )

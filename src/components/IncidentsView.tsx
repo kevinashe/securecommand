@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase, Incident } from '../lib/supabase';
 import { AlertTriangle, Plus, MapPin, Clock, User, X, Camera, ArrowLeft } from 'lucide-react';
 import { showToast } from '../lib/toast';
+import { playIncidentAlert } from '../lib/soundAlerts';
 
 interface IncidentsViewProps {
   onBack?: () => void;
@@ -31,6 +32,21 @@ export const IncidentsView: React.FC<IncidentsViewProps> = ({ onBack }) => {
     loadIncidents();
     loadSites();
     getCurrentLocation();
+
+    const channel = supabase
+      .channel('incidents_realtime')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'incidents' }, () => {
+        playIncidentAlert();
+        loadIncidents();
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'incidents' }, () => {
+        loadIncidents();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [profile]);
 
   useEffect(() => {

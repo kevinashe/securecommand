@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { Bell, Check, CheckCheck, Trash2, AlertTriangle, Info, AlertCircle, Loader, ArrowLeft } from 'lucide-react';
 import { showToast } from '../lib/toast';
+import { playNotificationAlert } from '../lib/soundAlerts';
 
 interface Notification {
   id: string;
@@ -59,7 +60,20 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({ onBack }) 
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${profile?.id}`
+        },
+        () => {
+          playNotificationAlert();
+          loadNotifications();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
           schema: 'public',
           table: 'notifications',
           filter: `user_id=eq.${profile?.id}`
