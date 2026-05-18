@@ -21,8 +21,8 @@ interface EmploymentHistory {
   role: string;
   start_date: string;
   end_date: string | null;
-  reason_for_leaving: string | null;
-  is_current: boolean;
+  status: string;
+  notes: string | null;
 }
 
 interface AssignmentHistoryViewProps {
@@ -99,13 +99,13 @@ export const AssignmentHistoryView: React.FC<AssignmentHistoryViewProps> = ({ on
           id,
           start_date,
           end_date,
-          reason_for_leaving,
-          is_current,
-          companies (
+          status,
+          notes,
+          companies:company_id (
             name
           )
         `)
-        .eq('guard_id', profile?.id)
+        .eq('officer_id', profile?.id)
         .order('start_date', { ascending: false });
 
       if (error) throw error;
@@ -116,8 +116,8 @@ export const AssignmentHistoryView: React.FC<AssignmentHistoryViewProps> = ({ on
         role: profile?.role || '',
         start_date: item.start_date,
         end_date: item.end_date,
-        reason_for_leaving: item.reason_for_leaving,
-        is_current: item.is_current
+        status: item.status,
+        notes: item.notes
       })) || [];
 
       setEmploymentHistory(formattedData);
@@ -242,7 +242,7 @@ export const AssignmentHistoryView: React.FC<AssignmentHistoryViewProps> = ({ on
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold text-gray-900">{employment.company_name}</h3>
-                    {employment.is_current && (
+                    {employment.status === 'active' && (
                       <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
                         Current
                       </span>
@@ -258,9 +258,9 @@ export const AssignmentHistoryView: React.FC<AssignmentHistoryViewProps> = ({ on
                         : 'Present'}
                     </span>
                   </div>
-                  {employment.reason_for_leaving && (
+                  {employment.notes && (
                     <p className="text-sm text-gray-600 mt-2">
-                      <span className="font-medium">Reason for leaving:</span> {employment.reason_for_leaving}
+                      <span className="font-medium">Notes:</span> {employment.notes}
                     </p>
                   )}
                 </div>

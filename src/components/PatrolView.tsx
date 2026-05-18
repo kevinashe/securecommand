@@ -55,6 +55,8 @@ export const PatrolView: React.FC<PatrolViewProps> = ({ onBack }) => {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [draftCheckpoints, setDraftCheckpoints] = useState<CheckpointDraft[]>([]);
 
+  const canManageRoutes = profile?.role === 'super_admin' || profile?.role === 'company_admin' || profile?.role === 'site_manager';
+
   const [routeFormData, setRouteFormData] = useState({
     name: '',
     site_id: '',
@@ -372,13 +374,15 @@ export const PatrolView: React.FC<PatrolViewProps> = ({ onBack }) => {
             <h1 className="text-3xl font-bold text-gray-900">{selectedRoute.name}</h1>
             <p className="text-gray-600 mt-1">{selectedRoute.site_name}</p>
           </div>
-          <button
-            onClick={() => setShowCheckpointModal(true)}
-            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="h-5 w-5" />
-            <span>Add Checkpoint</span>
-          </button>
+          {canManageRoutes && (
+            <button
+              onClick={() => setShowCheckpointModal(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Plus className="h-5 w-5" />
+              <span>Add Checkpoint</span>
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -386,14 +390,18 @@ export const PatrolView: React.FC<PatrolViewProps> = ({ onBack }) => {
             <div className="col-span-full bg-white rounded-xl shadow-sm p-12 text-center border border-gray-200">
               <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">No Checkpoints</h3>
-              <p className="text-gray-600 mb-4">Add checkpoints to this patrol route.</p>
-              <button
-                onClick={() => setShowCheckpointModal(true)}
-                className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <Plus className="h-5 w-5" />
-                <span>Add Checkpoint</span>
-              </button>
+              <p className="text-gray-600 mb-4">
+                {canManageRoutes ? 'Add checkpoints to this patrol route.' : 'No checkpoints have been added yet.'}
+              </p>
+              {canManageRoutes && (
+                <button
+                  onClick={() => setShowCheckpointModal(true)}
+                  className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="h-5 w-5" />
+                  <span>Add Checkpoint</span>
+                </button>
+              )}
             </div>
           ) : (
             checkpoints.map((checkpoint) => (
@@ -436,20 +444,24 @@ export const PatrolView: React.FC<PatrolViewProps> = ({ onBack }) => {
                     <QrCode className="h-4 w-4" />
                     <span className="text-sm font-medium">QR</span>
                   </button>
-                  <button
-                    onClick={() => openEditCheckpointModal(checkpoint)}
-                    className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                  >
-                    <Edit className="h-4 w-4" />
-                    <span className="text-sm font-medium">Edit</span>
-                  </button>
-                  <button
-                    onClick={() => handleDeleteCheckpoint(checkpoint.id)}
-                    className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    <span className="text-sm font-medium">Delete</span>
-                  </button>
+                  {canManageRoutes && (
+                    <>
+                      <button
+                        onClick={() => openEditCheckpointModal(checkpoint)}
+                        className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      >
+                        <Edit className="h-4 w-4" />
+                        <span className="text-sm font-medium">Edit</span>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCheckpoint(checkpoint.id)}
+                        className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="text-sm font-medium">Delete</span>
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             ))
@@ -658,13 +670,15 @@ export const PatrolView: React.FC<PatrolViewProps> = ({ onBack }) => {
             <p className="text-gray-600 mt-1">Manage patrol routes and checkpoints</p>
           </div>
         </div>
-        <button
-          onClick={() => setShowRouteModal(true)}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="h-5 w-5" />
-          <span>Add Route</span>
-        </button>
+        {canManageRoutes && (
+          <button
+            onClick={() => setShowRouteModal(true)}
+            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="h-5 w-5" />
+            <span>Add Route</span>
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -672,14 +686,18 @@ export const PatrolView: React.FC<PatrolViewProps> = ({ onBack }) => {
           <div className="col-span-full bg-white rounded-xl shadow-sm p-12 text-center border border-gray-200">
             <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">No Routes Yet</h3>
-            <p className="text-gray-600 mb-4">Create your first patrol route.</p>
-            <button
-              onClick={() => setShowRouteModal(true)}
-              className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Plus className="h-5 w-5" />
-              <span>Add Route</span>
-            </button>
+            <p className="text-gray-600 mb-4">
+              {canManageRoutes ? 'Create your first patrol route.' : 'No patrol routes have been assigned yet.'}
+            </p>
+            {canManageRoutes && (
+              <button
+                onClick={() => setShowRouteModal(true)}
+                className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Plus className="h-5 w-5" />
+                <span>Add Route</span>
+              </button>
+            )}
           </div>
         ) : (
           routes.map((route) => (
@@ -726,20 +744,24 @@ export const PatrolView: React.FC<PatrolViewProps> = ({ onBack }) => {
                   <QrCode className="h-4 w-4" />
                   <span className="text-sm font-medium">View</span>
                 </button>
-                <button
-                  onClick={() => openEditRouteModal(route)}
-                  className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                >
-                  <Edit className="h-4 w-4" />
-                  <span className="text-sm font-medium">Edit</span>
-                </button>
-                <button
-                  onClick={() => handleDeleteRoute(route.id)}
-                  className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  <span className="text-sm font-medium">Delete</span>
-                </button>
+                {canManageRoutes && (
+                  <>
+                    <button
+                      onClick={() => openEditRouteModal(route)}
+                      className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                    >
+                      <Edit className="h-4 w-4" />
+                      <span className="text-sm font-medium">Edit</span>
+                    </button>
+                    <button
+                      onClick={() => handleDeleteRoute(route.id)}
+                      className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span className="text-sm font-medium">Delete</span>
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           ))
