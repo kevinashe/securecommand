@@ -180,19 +180,15 @@ export const LogbookView: React.FC<LogbookViewProps> = ({ onBack }) => {
     return PRIORITIES.find(p => p.value === priority) || PRIORITIES[0];
   };
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
+  const formatTime = (dateStr: string) => {
+    return new Date(dateStr).toLocaleTimeString('en-US', {
+      hour: '2-digit', minute: '2-digit',
+    });
+  };
 
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours}h ago`;
-
-    return date.toLocaleDateString('en-US', {
-      month: 'short', day: 'numeric', year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
+  const formatTimestamp = (dateStr: string) => {
+    return new Date(dateStr).toLocaleString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
       hour: '2-digit', minute: '2-digit',
     });
   };
@@ -426,10 +422,10 @@ export const LogbookView: React.FC<LogbookViewProps> = ({ onBack }) => {
                                 </span>
                               )}
                             </div>
-                            <span className="text-xs text-gray-400 whitespace-nowrap flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {formatDate(entry.created_at)}
-                            </span>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 rounded-lg border border-gray-100 whitespace-nowrap">
+                              <Clock className="h-3.5 w-3.5 text-blue-500" />
+                              <span className="text-xs font-semibold text-gray-700">{formatTime(entry.created_at)}</span>
+                            </div>
                           </div>
 
                           <h3 className="font-semibold text-gray-900 mb-1.5 group-hover:text-blue-700 transition-colors">
@@ -437,17 +433,22 @@ export const LogbookView: React.FC<LogbookViewProps> = ({ onBack }) => {
                           </h3>
                           <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">{entry.description}</p>
 
-                          <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100">
-                            <span className="text-xs text-gray-500 flex items-center gap-1">
-                              <User className="h-3.5 w-3.5" />
-                              {entry.guard_name}
-                            </span>
-                            {entry.site_name && (
+                          <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                            <div className="flex items-center gap-4">
                               <span className="text-xs text-gray-500 flex items-center gap-1">
-                                <MapPin className="h-3.5 w-3.5" />
-                                {entry.site_name}
+                                <User className="h-3.5 w-3.5" />
+                                {entry.guard_name}
                               </span>
-                            )}
+                              {entry.site_name && (
+                                <span className="text-xs text-gray-500 flex items-center gap-1">
+                                  <MapPin className="h-3.5 w-3.5" />
+                                  {entry.site_name}
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-xs text-gray-400">
+                              {formatTimestamp(entry.created_at)}
+                            </span>
                           </div>
                         </div>
                       </div>
