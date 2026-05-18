@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { FileText, Plus, DollarSign, Calendar, CheckCircle, Clock, Send, X, Download, ArrowLeft } from 'lucide-react';
+import { FileText, Plus, DollarSign, Calendar, CheckCircle, Clock, Send, X, ArrowLeft, MapPin, ChevronDown, ChevronUp } from 'lucide-react';
 import { showToast } from '../lib/toast';
+
+interface SiteBreakdown {
+  siteName: string;
+  hours: number;
+  amount: number;
+  guardCount: number;
+}
 
 interface Invoice {
   id: string;
@@ -17,6 +24,7 @@ interface Invoice {
   paid_date: string | null;
   notes: string | null;
   created_at: string;
+  siteBreakdowns?: SiteBreakdown[];
 }
 
 interface InvoicingViewProps {
@@ -29,6 +37,7 @@ export const InvoicingView: React.FC<InvoicingViewProps> = ({ onBack }) => {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [expandedInvoice, setExpandedInvoice] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     billing_period_start: '',
@@ -53,7 +62,41 @@ export const InvoicingView: React.FC<InvoicingViewProps> = ({ onBack }) => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      if (data) setInvoices(data);
+      if (!data) { setInvoices([]); return; }
+
+      const invoiceIds = data.map(inv => inv.id);
+      const { data: items } = await supabase
+        .from('invoice_items')
+        .select('invoice_id, description, quantity, amount')
+        .in('invoice_id', invoiceIds);
+
+      const invoicesWithBreakdowns = data.map(inv => {
+        const invoiceItems = (items || []).filter(it => it.invoice_id === inv.id);
+        const siteMap = new Map<string, SiteBreakdown>();
+
+        for (const item of invoiceItems) {
+          const parts = (item.description || '').split(' - ');
+          const siteName = parts.length >= 2 ? parts[1] : 'Unknown Site';
+
+          const existing = siteMap.get(siteName);
+          if (existing) {
+            existing.hours += Number(item.quantity) || 0;
+            existing.amount += Number(item.amount) || 0;
+            existing.guardCount += 1;
+          } else {
+            siteMap.set(siteName, {
+              siteName,
+              hours: Number(item.quantity) || 0,
+              amount: Number(item.amount) || 0,
+              guardCount: 1,
+            });
+          }
+        }
+
+        return { ...inv, siteBreakdowns: Array.from(siteMap.values()) };
+      });
+
+      setInvoices(invoicesWithBreakdowns);
     } catch (error) {
       console.error('Error loading invoices:', error);
     } finally {
@@ -262,72 +305,148 @@ export const InvoicingView: React.FC<InvoicingViewProps> = ({ onBack }) => {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">All Invoices</h3>
-        </div>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">All Invoices</h3>
 
-        <div className="divide-y divide-gray-200">
-          {invoices.length === 0 ? (
-            <div className="px-6 py-8 text-center text-gray-500">
-              No invoices yet. Generate your first invoice to get started.
-            </div>
-          ) : (
-            invoices.map((invoice) => (
-              <div key={invoice.id} className="px-6 py-4 hover:bg-gray-50">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h4 className="font-medium text-gray-900">{invoice.invoice_number}</h4>
-                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(invoice.status)}`}>
-                        {invoice.status.toUpperCase()}
-                      </span>
+        {invoices.length === 0 ? (
+          <div className="bg-white rounded-xl border border-gray-200 px-6 py-12 text-center text-gray-500">
+            <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+            <p className="font-medium text-gray-700 mb-1">No invoices yet</p>
+            <p className="text-sm">Generate your first invoice to get started.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {invoices.map((invoice) => {
+              const isExpanded = expandedInvoice === invoice.id;
+              const totalHours = invoice.siteBreakdowns?.reduce((s, b) => s + b.hours, 0) || 0;
+              const siteCount = invoice.siteBreakdowns?.length || 0;
+
+              return (
+                <div
+                  key={invoice.id}
+                  className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+                >
+                  {/* Header */}
+                  <div className="p-5">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-bold text-gray-900 text-lg">{invoice.invoice_number}</h4>
+                          <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${getStatusColor(invoice.status)}`}>
+                            {invoice.status.toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 text-sm text-gray-500">
+                          <Calendar className="h-3.5 w-3.5" />
+                          <span>
+                            {new Date(invoice.billing_period_start).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            {' - '}
+                            {new Date(invoice.billing_period_end).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-gray-900">
+                          ${parseFloat(invoice.total_amount.toString()).toFixed(2)}
+                        </p>
+                        {invoice.tax_amount > 0 && (
+                          <p className="text-xs text-gray-500">
+                            incl. ${parseFloat(invoice.tax_amount.toString()).toFixed(2)} tax
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        {new Date(invoice.billing_period_start).toLocaleDateString()} - {new Date(invoice.billing_period_end).toLocaleDateString()}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <DollarSign className="h-4 w-4" />
-                        ${parseFloat(invoice.total_amount.toString()).toFixed(2)}
-                      </span>
-                      <span>Due: {new Date(invoice.due_date).toLocaleDateString()}</span>
+
+                    {/* Summary stats row */}
+                    <div className="grid grid-cols-3 gap-3 mb-3">
+                      <div className="bg-gray-50 rounded-lg px-3 py-2 text-center">
+                        <p className="text-xs text-gray-500">Sites</p>
+                        <p className="text-sm font-bold text-gray-900">{siteCount}</p>
+                      </div>
+                      <div className="bg-gray-50 rounded-lg px-3 py-2 text-center">
+                        <p className="text-xs text-gray-500">Hours</p>
+                        <p className="text-sm font-bold text-gray-900">{totalHours.toFixed(1)}</p>
+                      </div>
+                      <div className="bg-gray-50 rounded-lg px-3 py-2 text-center">
+                        <p className="text-xs text-gray-500">Due</p>
+                        <p className="text-sm font-bold text-gray-900">
+                          {new Date(invoice.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </p>
+                      </div>
                     </div>
+
+                    {/* Site breakdown toggle */}
+                    {siteCount > 0 && (
+                      <button
+                        onClick={() => setExpandedInvoice(isExpanded ? null : invoice.id)}
+                        className="w-full flex items-center justify-between px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors"
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <MapPin className="h-4 w-4" />
+                          Site Breakdown
+                        </span>
+                        {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      </button>
+                    )}
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  {/* Expanded site breakdown */}
+                  {isExpanded && invoice.siteBreakdowns && invoice.siteBreakdowns.length > 0 && (
+                    <div className="border-t border-gray-100 bg-gray-50 px-5 py-3">
+                      <div className="space-y-2">
+                        {invoice.siteBreakdowns
+                          .sort((a, b) => b.amount - a.amount)
+                          .map((site, idx) => (
+                            <div key={idx} className="flex items-center justify-between py-2 px-3 bg-white rounded-lg border border-gray-100">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                                <div className="min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 truncate">{site.siteName}</p>
+                                  <p className="text-xs text-gray-500">{site.guardCount} shift{site.guardCount !== 1 ? 's' : ''} -- {site.hours.toFixed(1)} hrs</p>
+                                </div>
+                              </div>
+                              <p className="text-sm font-bold text-gray-900 flex-shrink-0 ml-3">
+                                ${site.amount.toFixed(2)}
+                              </p>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action bar */}
+                  <div className="border-t border-gray-100 px-5 py-3 flex items-center justify-end gap-2">
                     {invoice.status === 'draft' && (
                       <button
                         onClick={() => updateInvoiceStatus(invoice.id, 'sent')}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                        title="Send Invoice"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                       >
-                        <Send className="h-5 w-5" />
+                        <Send className="h-4 w-4" />
+                        Send
                       </button>
                     )}
                     {invoice.status === 'sent' && (
                       <button
                         onClick={() => updateInvoiceStatus(invoice.id, 'paid')}
-                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
-                        title="Mark as Paid"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                       >
-                        <CheckCircle className="h-5 w-5" />
+                        <CheckCircle className="h-4 w-4" />
+                        Mark Paid
                       </button>
                     )}
                     <button
                       onClick={() => deleteInvoice(invoice.id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                      title="Delete"
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                     >
-                      <X className="h-5 w-5" />
+                      <X className="h-4 w-4" />
+                      Delete
                     </button>
                   </div>
                 </div>
-              </div>
-            ))
-          )}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {showCreateModal && (

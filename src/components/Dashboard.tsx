@@ -4,7 +4,7 @@ import { supabase, Company } from '../lib/supabase';
 import {
   Users, MapPin, Calendar, AlertTriangle, TrendingUp,
   Shield, Bell, Building, ArrowRight,
-  Clock, CheckCircle, Zap
+  Clock, CheckCircle, Zap, QrCode, LogIn, LogOut
 } from 'lucide-react';
 import { SuperAdminDashboard } from './SuperAdminDashboard';
 import { showToast } from '../lib/toast';
@@ -53,6 +53,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
   });
   const [recentCompanies, setRecentCompanies] = useState<any[]>([]);
   const [recentLeads, setRecentLeads] = useState<any[]>([]);
+  const [clockEntry, setClockEntry] = useState<any>(null);
 
   useEffect(() => {
     loadDashboardData();
@@ -122,9 +123,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
           equipment: equipmentRes.count || 0,
         });
       } else {
-        const [shiftsRes, incidentsRes] = await Promise.all([
+        const [shiftsRes, incidentsRes, clockRes] = await Promise.all([
           supabase.from('shifts').select('id', { count: 'exact', head: true }).eq('guard_id', profile.id).eq('status', 'active'),
           supabase.from('incidents').select('id', { count: 'exact', head: true }).eq('reported_by', profile.id),
+          supabase.from('time_clocks').select('id, clock_in_time, shift_id, is_within_geofence')
+            .eq('guard_id', profile.id)
+            .is('clock_out_time', null)
+            .order('clock_in_time', { ascending: false })
+            .limit(1)
+            .maybeSingle(),
         ]);
 
         setStats({
@@ -135,6 +142,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
           activeSOSAlerts: 0,
           equipment: 0,
         });
+
+        setClockEntry(clockRes.data);
       }
 
       if (profile.role !== 'super_admin') {
@@ -204,6 +213,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
     },
   ].filter(card => card.show);
 
+  const isEmployee = profile?.role === 'security_officer';
+
   const quickActions = [
     {
       label: 'Schedule Shift',
@@ -218,13 +229,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
       color: 'bg-emerald-600',
       action: 'advanced-scheduling',
       show: profile?.role === 'company_admin',
-    },
-    {
-      label: 'Clock In/Out',
-      icon: Clock,
-      color: 'bg-green-600',
-      action: 'time-attendance',
-      show: profile?.role === 'security_officer',
     },
     {
       label: 'Report Incident',
@@ -276,7 +280,78 @@ export const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
         )}
       </div>
 
-      {quickActions.length > 0 && (
+      {/* Employee Clock & Check-In Panel */}
+      {isEmployee && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-lg font-bold text-gray-900">My Actions</h2>
+            {clockEntry && (
+              <span className="flex items-center gap-1.5 text-sm font-medium text-green-700 bg-green-50 px-3 py-1 rounded-full">
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                Clocked In since {new Date(clockEntry.clock_in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Clock In/Out */}
+            <button
+              onClick={() => onViewChange?.('time-attendance')}
+              className={`relative flex items-center gap-4 p-5 rounded-xl border-2 transition-all duration-200 group ${
+                clockEntry
+                  ? 'border-red-200 bg-red-50 hover:border-red-400 hover:shadow-md'
+                  : 'border-green-200 bg-green-50 hover:border-green-400 hover:shadow-md'
+              }`}
+            >
+              <div className={`p-3 rounded-xl ${clockEntry ? 'bg-red-100' : 'bg-green-100'}`}>
+                {clockEntry
+                  ? <LogOut className="h-7 w-7 text-red-600" />
+                  : <LogIn className="h-7 w-7 text-green-600" />
+                }
+              </div>
+              <div className="text-left">
+                <p className={`text-base font-bold ${clockEntry ? 'text-red-900' : 'text-green-900'}`}>
+                  {clockEntry ? 'Clock Out' : 'Clock In'}
+                </p>
+                <p className={`text-xs ${clockEntry ? 'text-red-600' : 'text-green-600'}`}>
+                  {clockEntry ? 'End your shift' : 'Start your shift'}
+                </p>
+              </div>
+            </button>
+
+            {/* Checkpoint Check-In */}
+            <button
+              onClick={() => onViewChange?.('checkin')}
+              className="flex items-center gap-4 p-5 rounded-xl border-2 border-blue-200 bg-blue-50 hover:border-blue-400 hover:shadow-md transition-all duration-200 group"
+            >
+              <div className="p-3 rounded-xl bg-blue-100">
+                <QrCode className="h-7 w-7 text-blue-600" />
+              </div>
+              <div className="text-left">
+                <p className="text-base font-bold text-blue-900">Check In</p>
+                <p className="text-xs text-blue-600">Scan checkpoint QR</p>
+              </div>
+            </button>
+
+            {/* Report Incident */}
+            <button
+              onClick={() => onViewChange?.('incidents')}
+              className="flex items-center gap-4 p-5 rounded-xl border-2 border-orange-200 bg-orange-50 hover:border-orange-400 hover:shadow-md transition-all duration-200 group"
+            >
+              <div className="p-3 rounded-xl bg-orange-100">
+                <AlertTriangle className="h-7 w-7 text-orange-600" />
+              </div>
+              <div className="text-left">
+                <p className="text-base font-bold text-orange-900">Report Incident</p>
+                <p className="text-xs text-orange-600">Log a new incident</p>
+              </div>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Actions (admin roles) */}
+      {quickActions.length > 0 && !isEmployee && (
         <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
