@@ -1,6 +1,6 @@
 interface QueuedAction {
   id: string;
-  type: 'shift_update' | 'incident_create' | 'checkin_create' | 'sos_alert';
+  type: 'shift_update' | 'incident_create' | 'checkin_create' | 'sos_alert' | 'patrol_scan';
   data: any;
   timestamp: number;
   retryCount: number;
@@ -8,7 +8,7 @@ interface QueuedAction {
 
 class OfflineStorage {
   private dbName = 'securecommand-offline';
-  private version = 1;
+  private version = 2;
   private db: IDBDatabase | null = null;
 
   async init(): Promise<void> {
@@ -42,6 +42,12 @@ class OfflineStorage {
         if (!db.objectStoreNames.contains('actionQueue')) {
           const store = db.createObjectStore('actionQueue', { keyPath: 'id' });
           store.createIndex('timestamp', 'timestamp', { unique: false });
+        }
+        if (!db.objectStoreNames.contains('patrolRoutes')) {
+          db.createObjectStore('patrolRoutes', { keyPath: 'id' });
+        }
+        if (!db.objectStoreNames.contains('offlineCheckIns')) {
+          db.createObjectStore('offlineCheckIns', { keyPath: 'id' });
         }
       };
     });
@@ -127,6 +133,19 @@ class OfflineStorage {
       const transaction = this.db!.transaction(['actionQueue'], 'readwrite');
       const store = transaction.objectStore('actionQueue');
       const request = store.put(action);
+
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async removeFromStore(storeName: string, id: string): Promise<void> {
+    if (!this.db) await this.init();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([storeName], 'readwrite');
+      const store = transaction.objectStore(storeName);
+      const request = store.delete(id);
 
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
