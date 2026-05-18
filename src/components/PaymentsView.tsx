@@ -65,7 +65,7 @@ interface PaymentsViewProps {
   onBack?: () => void;
 }
 
-export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack }) => {
+export const PaymentsView: React.FC<PaymentsViewProps> = ({ onBack: _onBack }) => {
   const { profile } = useAuth();
   const [gateways, setGateways] = useState<PaymentGateway[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);

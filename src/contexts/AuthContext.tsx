@@ -128,7 +128,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (authData.user) {
       // First, get the user's profile to check their role
-      const { data: userProfile, error: profileError } = await supabase
+      const { data: userProfile } = await supabase
         .from('profiles')
         .select('id, role, company_id')
         .eq('id', authData.user.id)

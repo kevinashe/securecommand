@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { MapPin, Plus, CreditCard as Edit, Trash2, X, QrCode, Clock, Download, ArrowLeft } from 'lucide-react';
+import { MapPin, Plus, CreditCard as Edit, Trash2, X, QrCode, Download, ArrowLeft } from 'lucide-react';
 import { showToast } from '../lib/toast';
 
 interface PatrolRoute {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Calendar, Plus, Wand2, Users, Clock, MapPin, CheckCircle, X, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Calendar, Plus, Wand2, Users, Clock, MapPin, X, AlertCircle, ArrowLeft } from 'lucide-react';
 import { showToast } from '../lib/toast';
 
 interface Guard {

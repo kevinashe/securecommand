@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Bus, Users, TrendingUp, Clock, MapPin, User, ArrowLeft } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Bus, Users, TrendingUp, Clock, User, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { showToast } from '../lib/toast';

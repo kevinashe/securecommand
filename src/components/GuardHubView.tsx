@@ -144,7 +144,7 @@ export const GuardHubView: React.FC<GuardHubViewProps> = ({ onViewChange, onBack
       ]);
 
       if (!clockRes.error) setClockEntry(clockRes.data);
-      if (!shiftsRes.error) setUpcomingShifts((shiftsRes.data as UpcomingShift[]) || []);
+      if (!shiftsRes.error) setUpcomingShifts((shiftsRes.data as unknown as UpcomingShift[]) || []);
 
       const activities: ActivityItem[] = [
         ...(!logbookRes.error && logbookRes.data
@@ -155,7 +155,7 @@ export const GuardHubView: React.FC<GuardHubViewProps> = ({ onViewChange, onBack
             }))
           : []),
         ...(!checkInsRes.error && checkInsRes.data
-          ? (checkInsRes.data as RecentCheckIn[]).map((ci) => ({
+          ? (checkInsRes.data as unknown as RecentCheckIn[]).map((ci) => ({
               id: `ci-${ci.id}`, type: 'checkin' as const,
               label: ci.checkpoints?.name || 'Checkpoint', detail: 'Check-in completed',
               timestamp: ci.checked_in_at,

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, Loader, Building2, ArrowLeft } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { Loader, Building2, ArrowLeft } from 'lucide-react';
 
 interface CompanySignupProps {
   onBack: () => void;

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { showToast } from '../lib/toast';
-import { Award, Plus, CreditCard as Edit2, X, ArrowLeft, Search, Shield, AlertTriangle, Clock, CheckCircle, XCircle, Upload, FileText, User, Filter, ChevronDown, ChevronUp } from 'lucide-react';
+import { Award, Plus, CreditCard as Edit2, X, ArrowLeft, Search, Shield, AlertTriangle, Clock, CheckCircle, XCircle, Upload, FileText, User } from 'lucide-react';
 
 interface Certification {
   id: string;
@@ -97,7 +97,7 @@ export const CertificationTrackingView: React.FC<CertificationTrackingViewProps>
   const canManage =
     profile?.role === 'company_admin' ||
     profile?.role === 'site_manager' ||
-    profile?.role === 'hr_manager' ||
+    (profile?.role as string) === 'hr_manager' ||
     profile?.role === 'super_admin';
 
   useEffect(() => {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { History, MapPin, Calendar, Clock, Briefcase, Loader, ArrowLeft } from 'lucide-react';
+import { History, MapPin, Calendar, Clock, Briefcase, Loader } from 'lucide-react';
 import { showToast } from '../lib/toast';
 
 interface Assignment {
@@ -29,7 +29,7 @@ interface AssignmentHistoryViewProps {
   onBack?: () => void;
 }
 
-export const AssignmentHistoryView: React.FC<AssignmentHistoryViewProps> = ({ onBack }) => {
+export const AssignmentHistoryView: React.FC<AssignmentHistoryViewProps> = ({ onBack: _onBack }) => {
   const { profile } = useAuth();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [employmentHistory, setEmploymentHistory] = useState<EmploymentHistory[]>([]);

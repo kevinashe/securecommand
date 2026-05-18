@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { showToast } from '../lib/toast';
-import { Users, Plus, CreditCard as Edit, Trash2, X, Shield, Mail, Phone, MapPin, History, Building2, ArrowLeft, Briefcase, Copy, CheckCircle, Share2 } from 'lucide-react';
+import { Users, Plus, CreditCard as Edit, Trash2, X, Shield, Phone, History, Building2, ArrowLeft, Briefcase, Copy, CheckCircle, Share2 } from 'lucide-react';
 
 interface Guard {
   id: string;
@@ -38,7 +38,7 @@ interface GuardsViewProps {
 export const GuardsView: React.FC<GuardsViewProps> = ({ onBack }) => {
   const { profile } = useAuth();
   const [guards, setGuards] = useState<Guard[]>([]);
-  const [sites, setSites] = useState<Site[]>([]);
+  const [_sites, setSites] = useState<Site[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);

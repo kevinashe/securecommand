@@ -179,7 +179,7 @@ export function SignaturePad({
 
   const handleConfirm = useCallback(async () => {
     if (isEmpty) {
-      showToast('Please provide your signature before confirming.', 'error');
+      showToast('error', 'Please provide your signature before confirming.');
       return;
     }
 
@@ -207,12 +207,12 @@ export function SignaturePad({
 
       if (error) throw error;
 
-      showToast('Signature captured successfully.', 'success');
+      showToast('success', 'Signature captured successfully.');
       onSigned(data.id, signatureDataUrl);
       onClose();
     } catch (err) {
       console.error('Failed to save signature:', err);
-      showToast('Failed to save signature. Please try again.', 'error');
+      showToast('error', 'Failed to save signature. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -236,10 +236,7 @@ export function SignaturePad({
 
   if (!isOpen) return null;
 
-  const signerName =
-    profile?.full_name || profile?.first_name
-      ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
-      : user?.email || 'Unknown';
+  const signerName = profile?.full_name || user?.email || 'Unknown';
 
   const currentTimestamp = new Date().toLocaleString('en-US', {
     year: 'numeric',

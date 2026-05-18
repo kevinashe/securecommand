@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Mail, Phone, Building2, Package, MessageSquare, Calendar, Filter, Search, UserPlus, X, ArrowLeft } from 'lucide-react';
+import { Users, Mail, Phone, Building2, Package, Calendar, Filter, Search, UserPlus, X, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface Lead {

@@ -43,8 +43,6 @@ const LogbookView = React.lazy(() => import('./components/LogbookView').then(m =
 const BusManagementView = React.lazy(() => import('./components/BusManagementView'));
 const BusCheckInView = React.lazy(() => import('./components/BusCheckInView'));
 const BusTrackingView = React.lazy(() => import('./components/BusTrackingView'));
-const ProfileSettings = React.lazy(() => import('./components/ProfileSettings').then(m => ({ default: m.ProfileSettings })));
-const SuperAdminDashboard = React.lazy(() => import('./components/SuperAdminDashboard').then(m => ({ default: m.SuperAdminDashboard })));
 const GuardHubView = React.lazy(() => import('./components/GuardHubView').then(m => ({ default: m.GuardHubView })));
 const VisitorManagementView = React.lazy(() => import('./components/VisitorManagementView').then(m => ({ default: m.VisitorManagementView })));
 const CertificationTrackingView = React.lazy(() => import('./components/CertificationTrackingView').then(m => ({ default: m.CertificationTrackingView })));

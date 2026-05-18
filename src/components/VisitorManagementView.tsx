@@ -172,7 +172,7 @@ export const VisitorManagementView: React.FC<VisitorManagementViewProps> = ({ on
   const openCamera = async (
     facingMode: 'user' | 'environment',
     streamRef: React.MutableRefObject<MediaStream | null>,
-    videoRef: React.RefObject<HTMLVideoElement>,
+    videoRef: React.RefObject<HTMLVideoElement | null>,
     setShow: (v: boolean) => void,
   ) => {
     try {
@@ -204,8 +204,8 @@ export const VisitorManagementView: React.FC<VisitorManagementViewProps> = ({ on
   };
 
   const snap = (
-    videoRef: React.RefObject<HTMLVideoElement>,
-    canvasRef: React.RefObject<HTMLCanvasElement>,
+    videoRef: React.RefObject<HTMLVideoElement | null>,
+    canvasRef: React.RefObject<HTMLCanvasElement | null>,
     streamRef: React.MutableRefObject<MediaStream | null>,
     setPhoto: (v: string | null) => void,
     setShow: (v: boolean) => void,
@@ -302,8 +302,8 @@ export const VisitorManagementView: React.FC<VisitorManagementViewProps> = ({ on
     label: string, buttonText: string, facingMode: 'user' | 'environment',
     photo: string | null, setPhoto: (v: string | null) => void,
     showCam: boolean, setShowCam: (v: boolean) => void,
-    videoRef: React.RefObject<HTMLVideoElement>,
-    canvasRef: React.RefObject<HTMLCanvasElement>,
+    videoRef: React.RefObject<HTMLVideoElement | null>,
+    canvasRef: React.RefObject<HTMLCanvasElement | null>,
     streamRef: React.MutableRefObject<MediaStream | null>,
     imgClass: string,
   ) => (

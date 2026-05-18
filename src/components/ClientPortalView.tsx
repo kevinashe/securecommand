@@ -4,15 +4,14 @@ import { supabase } from '../lib/supabase';
 import { showToast } from '../lib/toast';
 import {
   MapPin, Users, AlertTriangle, CheckCircle, MessageSquare,
-  BarChart3, Clock, Shield, Activity, FileText, ArrowLeft,
-  Plus, X, Calendar, Send, DollarSign, ClipboardCheck,
-  ChevronDown, Eye
+  BarChart3, Clock, Shield, Activity, ArrowLeft,
+  Plus, X, Calendar, Send, DollarSign
 } from 'lucide-react';
 
 interface Site { id: string; name: string; address: string; contact_name: string; contact_phone: string; is_active: boolean; }
 interface Guard { id: string; full_name: string; phone: string; avatar_url: string; }
-interface Incident { id: string; title: string; severity: string; status: string; occurred_at: string; sites: { name: string }; }
-interface CheckIn { id: string; checked_in_at: string; notes: string; checkpoints: { name: string }; profiles: { full_name: string }; }
+interface Incident { id: string; title: string; severity: string; status: string; occurred_at: string; sites: any; }
+interface CheckIn { id: string; checked_in_at: string; notes: string; checkpoints: any; profiles: any; }
 interface CoverageRequest {
   id: string; site_id: string; request_type: string; title: string; description: string;
   requested_date: string; requested_start_time: string | null; requested_end_time: string | null;
@@ -63,7 +62,7 @@ export const ClientPortalView: React.FC<ClientPortalViewProps> = ({ onBack }) =>
         .from('client_access').select('site_id, sites(*)').eq('client_id', profile?.id).eq('is_active', true);
       if (accessError) throw accessError;
 
-      const clientSites = clientAccess?.map(ca => ca.sites).filter(Boolean) as Site[];
+      const clientSites = clientAccess?.map(ca => ca.sites).flat().filter(Boolean) as unknown as Site[];
       setSites(clientSites || []);
       const siteIds = clientSites?.map(s => s.id) || [];
 
@@ -76,10 +75,10 @@ export const ClientPortalView: React.FC<ClientPortalViewProps> = ({ onBack }) =>
           supabase.from('invoices').select('id, invoice_number, billing_period_start, billing_period_end, total_amount, status, due_date, created_at').eq('company_id', profile?.company_id).order('created_at', { ascending: false }).limit(20),
         ]);
 
-        const uniqueGuards = Array.from(new Map(shiftsRes.data?.filter(s => s.profiles).map(s => [s.profiles.id, s.profiles])).values()) as Guard[];
+        const uniqueGuards = Array.from(new Map(shiftsRes.data?.filter(s => s.profiles).map(s => { const p = Array.isArray(s.profiles) ? s.profiles[0] : s.profiles; return [p.id, p]; })).values()) as unknown as Guard[];
         setGuards(uniqueGuards);
-        setIncidents((incidentsRes.data || []) as Incident[]);
-        setCheckIns((checkInsRes.data || []) as CheckIn[]);
+        setIncidents((incidentsRes.data || []) as unknown as Incident[]);
+        setCheckIns((checkInsRes.data || []) as unknown as CheckIn[]);
         setInvoices((invoicesRes.data || []) as Invoice[]);
 
         const siteMap = new Map(clientSites.map(s => [s.id, s.name]));

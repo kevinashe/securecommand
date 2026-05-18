@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { OfflineBanner } from './OfflineBanner';
 import {
-  Shield, LogOut, Menu, X, LayoutDashboard, MapPin, Users,
+  LogOut, Menu, X, LayoutDashboard, MapPin, Users,
   Calendar, AlertTriangle, Package, MessageSquare, CreditCard,
   Building, Bell, Radio, Wallet, Settings, BarChart3, History,
-  FileText, User, DollarSign, UserPlus, Globe, Wand2, Clock as ClockIcon,
+  FileText, DollarSign, UserPlus, Globe, Wand2, Clock as ClockIcon,
   Bus, BookOpen, UserCheck, Award, Printer, BellRing, Compass,
   Map, FileBarChart, ClipboardList, Link2, Receipt
 } from 'lucide-react';
@@ -21,13 +21,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const getMenuItems = () => {
-    const baseItems = [
-      { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-      { id: 'shifts', icon: Calendar, label: 'Shifts' },
-      { id: 'incidents', icon: AlertTriangle, label: 'Incidents' },
-      { id: 'messages', icon: MessageSquare, label: 'Messages' },
-    ];
-
     if (profile?.role === 'super_admin') {
       return [
         { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -101,7 +94,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
       ];
     }
 
-    if (profile?.role === 'dispatcher') {
+    if ((profile?.role as string) === 'dispatcher') {
       return [
         { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
         { id: 'time-attendance', icon: ClockIcon, label: 'Clock In/Out' },
@@ -117,7 +110,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
       ];
     }
 
-    if (profile?.role === 'hr_manager') {
+    if ((profile?.role as string) === 'hr_manager') {
       return [
         { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
         { id: 'guards', icon: Users, label: 'Staff' },
@@ -130,7 +123,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
       ];
     }
 
-    if (profile?.role === 'finance_officer') {
+    if ((profile?.role as string) === 'finance_officer') {
       return [
         { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
         { id: 'invoicing', icon: FileText, label: 'Invoicing' },
@@ -143,7 +136,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onViewCha
       ];
     }
 
-    if (profile?.role === 'office_admin') {
+    if ((profile?.role as string) === 'office_admin') {
       return [
         { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
         { id: 'time-attendance', icon: ClockIcon, label: 'Clock In/Out' },

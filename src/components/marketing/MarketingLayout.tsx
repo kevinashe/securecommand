@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 interface MarketingLayoutProps {
   children: React.ReactNode;

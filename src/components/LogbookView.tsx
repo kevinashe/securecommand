@@ -4,8 +4,8 @@ import { supabase } from '../lib/supabase';
 import { showToast } from '../lib/toast';
 import {
   BookOpen, Plus, X, ArrowLeft, Clock, MapPin, User,
-  Filter, ChevronDown, AlertTriangle, Eye, Search, Pencil, Save,
-  Camera, Image, Trash2, ZoomIn
+  ChevronDown, AlertTriangle, Search, Pencil, Save,
+  Camera, Image, ZoomIn
 } from 'lucide-react';
 
 interface LogbookEntry {

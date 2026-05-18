@@ -134,7 +134,7 @@ class SyncManager {
     }
   }
 
-  async cacheEssentialData(userId: string, companyId: string | null): Promise<void> {
+  async cacheEssentialData(_userId: string, companyId: string | null): Promise<void> {
     try {
       const [shiftsRes, sitesRes, checkpointsRes, guardsRes, patrolRoutesRes] = await Promise.all([
         supabase

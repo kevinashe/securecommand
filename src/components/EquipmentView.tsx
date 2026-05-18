@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Package, Plus, CreditCard as Edit, Trash2, X, Radio, ArrowLeft } from 'lucide-react';
+import { Package, Plus, CreditCard as Edit, Trash2, X, ArrowLeft } from 'lucide-react';
 import { showToast } from '../lib/toast';
 
 interface Equipment {

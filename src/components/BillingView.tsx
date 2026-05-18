@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { DollarSign, FileText, Plus, X, Send, AlertCircle, CheckCircle, Clock, Settings, ArrowLeft } from 'lucide-react';
+import { DollarSign, FileText, X, Send, AlertCircle, CheckCircle, Clock, Settings, ArrowLeft } from 'lucide-react';
 
 interface CompanyBilling {
   id: string;

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase, Incident } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 import { AlertTriangle, Plus, MapPin, Clock, User, X, Camera, ArrowLeft } from 'lucide-react';
 import { showToast } from '../lib/toast';
 import { playIncidentAlert } from '../lib/soundAlerts';

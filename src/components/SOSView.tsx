@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase, SOSAlert } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 import { Bell, AlertCircle, CheckCircle, MapPin, Clock, User, ArrowLeft } from 'lucide-react';
 import { playSosAlert } from '../lib/soundAlerts';
 

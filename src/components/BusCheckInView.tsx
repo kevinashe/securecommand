@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Bus, Camera, CheckCircle, Clock, LogOut, MapPin, ArrowLeft, ShieldAlert } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Bus, Camera, CheckCircle, Clock, LogOut, ArrowLeft, ShieldAlert } from 'lucide-react';
 import jsQR from 'jsqr';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -18,7 +18,7 @@ interface CheckIn {
   bus_id: string;
   checked_in_at: string;
   checked_out_at: string | null;
-  company_buses: CompanyBus;
+  company_buses: CompanyBus[];
 }
 
 interface BusCheckInViewProps {
@@ -300,10 +300,10 @@ export default function BusCheckInView({ onBack }: BusCheckInViewProps) {
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="font-semibold text-green-900">Currently on Bus {currentCheckIn.company_buses.bus_number}</span>
+                  <span className="font-semibold text-green-900">Currently on Bus {currentCheckIn.company_buses[0].bus_number}</span>
                 </div>
-                {currentCheckIn.company_buses.route_name && (
-                  <p className="text-sm text-green-700">{currentCheckIn.company_buses.route_name}</p>
+                {currentCheckIn.company_buses[0].route_name && (
+                  <p className="text-sm text-green-700">{currentCheckIn.company_buses[0].route_name}</p>
                 )}
                 <p className="text-sm text-green-600 mt-1">
                   Checked in at {formatTime(currentCheckIn.checked_in_at)}
@@ -416,10 +416,10 @@ export default function BusCheckInView({ onBack }: BusCheckInViewProps) {
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">
-                        Bus {checkIn.company_buses.bus_number}
+                        Bus {checkIn.company_buses[0].bus_number}
                       </p>
-                      {checkIn.company_buses.route_name && (
-                        <p className="text-sm text-gray-600">{checkIn.company_buses.route_name}</p>
+                      {checkIn.company_buses[0].route_name && (
+                        <p className="text-sm text-gray-600">{checkIn.company_buses[0].route_name}</p>
                       )}
                       <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
                         <span className="flex items-center gap-1">

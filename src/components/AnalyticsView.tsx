@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { BarChart3, TrendingUp, Users, AlertTriangle, Clock, MapPin, Loader, DollarSign, Award, Target, ArrowLeft } from 'lucide-react';
+import { TrendingUp, Users, AlertTriangle, Clock, MapPin, Loader, DollarSign, Award, Target, ArrowLeft } from 'lucide-react';
 import { showToast } from '../lib/toast';
 
 interface Stats {

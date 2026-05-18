@@ -3,8 +3,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase, Company } from '../lib/supabase';
 import {
   Users, MapPin, Calendar, AlertTriangle, TrendingUp,
-  Shield, Bell, Building, ArrowRight,
-  Clock, CheckCircle, Zap, QrCode, LogIn, LogOut
+  Shield, Building, ArrowRight,
+  CheckCircle, Zap, QrCode, LogIn, LogOut
 } from 'lucide-react';
 import { SuperAdminDashboard } from './SuperAdminDashboard';
 import { showToast } from '../lib/toast';
@@ -44,15 +44,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
   const [loading, setLoading] = useState(true);
   const [recentIncidents, setRecentIncidents] = useState<any[]>([]);
   const [upcomingShifts, setUpcomingShifts] = useState<any[]>([]);
-  const [superAdminStats, setSuperAdminStats] = useState<SuperAdminStats>({
+  const [_superAdminStats, setSuperAdminStats] = useState<SuperAdminStats>({
     totalCompanies: 0,
     activeCompanies: 0,
     totalUsers: 0,
     totalLeads: 0,
     systemUptime: '99.9%',
   });
-  const [recentCompanies, setRecentCompanies] = useState<any[]>([]);
-  const [recentLeads, setRecentLeads] = useState<any[]>([]);
+  const [_recentCompanies, setRecentCompanies] = useState<any[]>([]);
+  const [_recentLeads, setRecentLeads] = useState<any[]>([]);
   const [clockEntry, setClockEntry] = useState<any>(null);
 
   useEffect(() => {

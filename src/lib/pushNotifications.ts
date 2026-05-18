@@ -54,7 +54,7 @@ export function showNotification({ title, body, category }: AppNotification) {
           badge: '/pwa-192x192.svg',
           vibrate: category === 'sos' ? [200, 100, 200, 100, 200] : [200, 100, 200],
           requireInteraction: category === 'sos',
-        });
+        } as any);
       });
     } else {
       new Notification(title, { body, tag, icon: '/pwa-192x192.svg' });

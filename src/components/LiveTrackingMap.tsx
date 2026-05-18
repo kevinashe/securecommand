@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { MapPin, User, Battery, Clock, Activity, Navigation, ArrowLeft, Maximize2, Minimize2, RefreshCw, Crosshair, Layers } from 'lucide-react';
+import { MapPin, User, Battery, Activity, Navigation, ArrowLeft, Maximize2, Minimize2, RefreshCw, Crosshair, Layers } from 'lucide-react';
 import { showToast } from '../lib/toast';
 
 interface LocationData {
@@ -361,7 +361,7 @@ export const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ onBack }) => {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          {(profile?.role === 'security_officer' || profile?.role === 'guard') && (
+          {(profile?.role === 'security_officer' || (profile?.role as string) === 'guard') && (
             <button
               onClick={isTracking ? stopTracking : startTracking}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-colors ${isTracking ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}
